@@ -35,11 +35,8 @@ impl Segment {
 
 impl From<((i32, i32), (i32, i32))> for Segment {
     fn from(value: ((i32, i32), (i32, i32))) -> Self {
-        let start = (value.0 .0 as f32, value.0 .1 as f32);
-        let end = (value.1 .0 as f32, value.1 .1 as f32);
-        Self {
-            start: start.into(),
-            end: end.into(),
-        }
+        let start = (value.0 .0 as f32, value.0 .1 as f32).into();
+        let end = (value.1 .0 as f32, value.1 .1 as f32).into();
+        Self { start, end }
     }
 }
