@@ -1,9 +1,10 @@
 use itertools::{iproduct, Itertools};
 use nannou::{
-    draw::{primitive::Line, Drawing},
     prelude::*,
     rand::{rngs::ThreadRng, seq::SliceRandom, thread_rng},
 };
+
+use crate::helper::Segment;
 
 pub struct Cells {
     cells: Vec<(i32, i32)>,
@@ -24,40 +25,12 @@ impl Cells {
     }
 }
 
-pub struct Segment {
-    start: Vec2,
-    end: Vec2,
-}
-
-impl Segment {
-    fn scaled(mut self, scale: f32) -> Self {
-        self.start *= scale;
-        self.end *= scale;
-        self
-    }
-
-    fn line<'a>(&'a self, draw: &'a Draw) -> Drawing<Line> {
-        draw.line().start(self.start).end(self.end)
-    }
-}
-
-impl From<((i32, i32), (i32, i32))> for Segment {
-    fn from(value: ((i32, i32), (i32, i32))) -> Self {
-        let start = (value.0 .0 as f32, value.0 .1 as f32);
-        let end = (value.1 .0 as f32, value.1 .1 as f32);
-        Self {
-            start: start.into(),
-            end: end.into(),
-        }
-    }
-}
-
 pub struct Model {
     segments: Vec<Segment>,
     active: Vec<(i32, i32)>,
     cursor: (i32, i32),
     scale: f32,
-    cells: Cells,
+    cells: Vec<(i32, i32)>,
 }
 
 impl Model {
@@ -76,8 +49,21 @@ impl Model {
         }
     }
 
+    pub fn neighbors_of(&self, p: (i32, i32)) -> Vec<(i32, i32)> {
+        [
+            (p.0 - 1, p.1),
+            (p.0 + 1, p.1),
+            (p.0, p.1 - 1),
+            (p.0, p.1 + 1),
+        ]
+        .iter()
+        .filter(|x| self.cells.contains(x))
+        .copied()
+        .collect_vec()
+    }
+
     fn neighbors(&self) -> Vec<(i32, i32)> {
-        self.cells.neighbors(self.cursor)
+        self.neighbors_of(self.cursor)
     }
 }
 
@@ -87,9 +73,7 @@ pub fn model(_app: &App) -> Model {
     let cells = {
         let xs = -WIDTH..=WIDTH;
         let ys = -WIDTH..=WIDTH;
-        Cells {
-            cells: iproduct!(xs, ys).into_iter().collect_vec(),
-        }
+        iproduct!(xs, ys).into_iter().collect_vec()
     };
 
     Model {
@@ -131,7 +115,7 @@ pub fn update(app: &App, model: &mut Model, _update: Update) {
 
         // Mark the endpoint as active and remove it from cells
         model.active.push(endpoint);
-        model.cells.cells.retain(|x| x != &endpoint);
+        model.cells.retain(|x| x != &endpoint);
 
         // Move the cursor to a random active position
         model.move_cursor_to_random(&mut rng);

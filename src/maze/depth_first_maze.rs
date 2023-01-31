@@ -1,56 +1,10 @@
 use itertools::{iproduct, Itertools};
 use nannou::{
-    draw::{primitive::Line, Drawing},
     prelude::*,
     rand::{seq::SliceRandom, thread_rng},
 };
 
-pub struct Cells {
-    cells: Vec<(i32, i32)>,
-}
-
-impl Cells {
-    pub fn neighbors(&self, p: (i32, i32)) -> Vec<(i32, i32)> {
-        [
-            (p.0 - 1, p.1),
-            (p.0 + 1, p.1),
-            (p.0, p.1 - 1),
-            (p.0, p.1 + 1),
-        ]
-        .iter()
-        .filter(|x| self.cells.contains(x))
-        .copied()
-        .collect_vec()
-    }
-}
-
-pub struct Segment {
-    start: Vec2,
-    end: Vec2,
-}
-
-impl Segment {
-    fn scaled(mut self, scale: f32) -> Self {
-        self.start *= scale;
-        self.end *= scale;
-        self
-    }
-
-    fn line<'a>(&'a self, draw: &'a Draw) -> Drawing<Line> {
-        draw.line().start(self.start).end(self.end)
-    }
-}
-
-impl From<((i32, i32), (i32, i32))> for Segment {
-    fn from(value: ((i32, i32), (i32, i32))) -> Self {
-        let start = (value.0 .0 as f32, value.0 .1 as f32);
-        let end = (value.1 .0 as f32, value.1 .1 as f32);
-        Self {
-            start: start.into(),
-            end: end.into(),
-        }
-    }
-}
+use crate::helper::Segment;
 
 pub struct Model {
     segments: Vec<Segment>,
@@ -58,7 +12,7 @@ pub struct Model {
     stack: Vec<(i32, i32)>,
     cursor: (i32, i32),
     scale: f32,
-    cells: Cells,
+    cells: Vec<(i32, i32)>,
 }
 
 impl Model {
@@ -70,6 +24,23 @@ impl Model {
             .stroke_color(BLACK)
             .stroke_weight(3.0);
     }
+
+    pub fn neighbors_of(&self, p: (i32, i32)) -> Vec<(i32, i32)> {
+        [
+            (p.0 - 1, p.1),
+            (p.0 + 1, p.1),
+            (p.0, p.1 - 1),
+            (p.0, p.1 + 1),
+        ]
+        .iter()
+        .filter(|x| self.cells.contains(x))
+        .copied()
+        .collect_vec()
+    }
+
+    fn neighbors(&self) -> Vec<(i32, i32)> {
+        self.neighbors_of(self.cursor)
+    }
 }
 
 const WIDTH: i32 = 10;
@@ -78,9 +49,7 @@ pub fn model(_app: &App) -> Model {
     let cells = {
         let xs = -WIDTH..=WIDTH;
         let ys = -WIDTH..=WIDTH;
-        Cells {
-            cells: iproduct!(xs, ys).into_iter().collect_vec(),
-        }
+        iproduct!(xs, ys).into_iter().collect_vec()
     };
 
     Model {
@@ -99,7 +68,7 @@ pub fn update(app: &App, model: &mut Model, _update: Update) {
     // let t = time::Duration::from_millis(50);
     // thread::sleep(t);
 
-    if model.cells.cells.is_empty() {
+    if model.cells.is_empty() {
         if model.segments.is_empty() {
             app.quit();
         } else {
@@ -107,7 +76,7 @@ pub fn update(app: &App, model: &mut Model, _update: Update) {
         }
     } else {
         let mut rng = thread_rng();
-        let neighbors = model.cells.neighbors(model.cursor);
+        let neighbors = model.neighbors();
         // If there are no neighbors backtrack
         if neighbors.is_empty() {
             model.cursor = model.stack.pop().unwrap();
@@ -116,7 +85,7 @@ pub fn update(app: &App, model: &mut Model, _update: Update) {
         } else {
             model.stack.push(model.cursor);
             let new_pos = *neighbors.choose(&mut rng).unwrap();
-            model.cells.cells.retain(|x| x != &new_pos);
+            model.cells.retain(|x| x != &new_pos);
             model
                 .segments
                 .push(Segment::from((model.cursor, new_pos)).scaled(model.scale));
