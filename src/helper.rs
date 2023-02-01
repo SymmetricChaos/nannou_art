@@ -16,6 +16,7 @@ pub fn captured_frame_path(app: &App, frame: &Frame, dir_name: &str) -> std::pat
         .with_extension("png")
 }
 
+#[derive(Debug, Copy, Clone)]
 pub struct Segment {
     start: Vec2,
     end: Vec2,

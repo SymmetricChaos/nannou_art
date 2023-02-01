@@ -2,6 +2,7 @@ use itertools::Itertools;
 use nannou::Draw;
 
 pub mod breadth_first_maze;
+pub mod breadth_first_maze_growing;
 pub mod depth_first_maze;
 
 pub trait SquareMaze {
