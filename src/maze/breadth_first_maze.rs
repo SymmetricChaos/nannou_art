@@ -67,7 +67,7 @@ impl Model {
     }
 }
 
-const WIDTH: i32 = 10;
+const WIDTH: i32 = 16;
 
 pub fn model(_app: &App) -> Model {
     let cells = {
@@ -125,11 +125,14 @@ pub fn update(app: &App, model: &mut Model, _update: Update) {
 pub fn view(app: &App, model: &Model, frame: Frame) {
     let draw = app.draw();
 
-    draw.background().color(PALEGOLDENROD);
-    model.outline(&draw);
+    draw.background().color(BLACK);
 
     for segment in model.segments.iter() {
-        segment.line(&draw).color(BLACK).weight(3.0).caps_round();
+        segment
+            .line(&draw)
+            .color(PALEGOLDENROD)
+            .weight(10.0)
+            .caps_round();
     }
 
     draw.to_frame(app, &frame).unwrap();
@@ -137,7 +140,7 @@ pub fn view(app: &App, model: &Model, frame: Frame) {
     // To create am mp4 from the images use the command below from the directory they are saved to
     // ffmpeg -r 30 -f image2 -s 1920x1080 -i %04d.png -vcodec libx264 -crf 25  -pix_fmt yuv420p breadth_first_maze.mp4
 
-    use crate::helper::captured_frame_path;
-    let file_path = captured_frame_path(app, &frame, "breadth_first_maze");
-    app.main_window().capture_frame(file_path);
+    // use crate::helper::captured_frame_path;
+    // let file_path = captured_frame_path(app, &frame, "breadth_first_maze");
+    // app.main_window().capture_frame(file_path);
 }
