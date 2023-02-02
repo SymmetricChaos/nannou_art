@@ -1,8 +1,8 @@
-use itertools::Itertools;
-use itertools_num::linspace;
+use std::collections::HashMap;
+
 use nannou::{
     math::Vec2Rotate,
-    prelude::{Hsv, Update, Vec2, BLACK},
+    prelude::{Update, Vec2, BLACK, SALMON},
     App, Frame,
 };
 
@@ -47,40 +47,53 @@ impl Cursor {
     }
 }
 
-pub struct Model {
-    expression: Vec<char>,
-    segments: Vec<Segment>,
-    cursor: Cursor,
-}
-
-const DEPTH: usize = 5;
-
-pub fn model(_app: &App) -> Model {
-    let mut expression = String::from("X");
-    for _ in 0..DEPTH {
+pub fn l_system(axiom: String, rules: HashMap<char, &str>, depth: usize) -> std::str::Chars {
+    let mut expression = axiom;
+    for _ in 0..depth {
         let mut new = String::new();
         for c in expression.chars() {
-            match c {
-                'X' => new.push_str("X+YF++YF-FX--FXFX-YF+"),
-                'Y' => new.push_str("-FX+YFYF++YF+FX--FX-Y"),
-                _ => new.push(c),
+            if let Some(s) = rules.get(&c) {
+                new.push_str(s)
+            } else {
+                new.push(c)
             }
         }
         expression = new;
     }
+    expression.chars()
+}
+
+pub struct Model<'a> {
+    expression: std::str::Chars<'a>,
+    segments: Vec<Segment>,
+    angle: f32,
+    cursor: Cursor,
+}
+
+pub fn model(_app: &App) -> Model {
+    let expression = l_system(
+        String::from("X"),
+        HashMap::from([
+            ('X', "X+YF++YF-FX--FXFX-YF+"),
+            ('Y', "-FX+YFYF++YF+FX--FX-Y"),
+        ]),
+        5,
+    );
 
     let cursor = Cursor::new((0.0, 0.0), (1.0, 1.0));
+    let angle = 1.0472;
 
     Model {
-        expression: expression.chars().collect_vec(),
+        expression,
         segments: Vec::new(),
+        angle,
         cursor,
     }
 }
 
 pub fn update(app: &App, model: &mut Model, _update: Update) {
     loop {
-        if let Some(c) = model.expression.pop() {
+        if let Some(c) = model.expression.next() {
             let mut new_cursor = model.cursor;
             match c {
                 'F' => {
@@ -91,8 +104,8 @@ pub fn update(app: &App, model: &mut Model, _update: Update) {
                     model.cursor = new_cursor;
                     break;
                 }
-                '+' => model.cursor.rotate(1.0472),
-                '-' => model.cursor.rotate(-1.0472),
+                '+' => model.cursor.rotate(model.angle),
+                '-' => model.cursor.rotate(-model.angle),
                 _ => (),
             }
         } else {
@@ -107,11 +120,8 @@ pub fn view(app: &App, model: &Model, frame: Frame) {
 
     draw.background().color(BLACK);
 
-    let hue = linspace(-180.0_f32, 120.0, 2_usize.pow((2 * DEPTH) as u32))
-        .map(|degree| Hsv::new(degree, 1.0, 0.5));
-
-    for (segment, hue) in model.segments.iter().zip(hue) {
-        segment.line(&draw).color(hue).weight(5.0).caps_round();
+    for segment in model.segments.iter() {
+        segment.line(&draw).color(SALMON).weight(5.0).caps_round();
     }
 
     draw.to_frame(app, &frame).unwrap();
