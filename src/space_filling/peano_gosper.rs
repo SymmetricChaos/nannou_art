@@ -6,7 +6,7 @@ use nannou::{
     App, Frame,
 };
 
-use crate::helper::Segment;
+use crate::segment::Segment;
 
 pub struct Direction(Vec2);
 
@@ -104,7 +104,7 @@ pub fn view(app: &App, model: &Model, frame: Frame) {
     // To create am mp4 from the images use the command below from the directory they are saved to
     // ffmpeg -r 30 -f image2 -s 1920x1080 -i %04d.png -vcodec libx264 -crf 25  -pix_fmt yuv420p hilbert_curve.mp4
 
-    // use crate::helper::captured_frame_path;
+    // use crate::capture::captured_frame_path;
     // let file_path = captured_frame_path(app, &frame, "hilbert_curve");
     // app.main_window().capture_frame(file_path);
 }

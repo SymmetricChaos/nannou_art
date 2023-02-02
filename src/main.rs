@@ -1,7 +1,7 @@
 pub mod capture;
 pub mod dot;
-pub mod helper;
 pub mod maze;
+pub mod segment;
 pub mod space_filling;
 pub mod wave;
 

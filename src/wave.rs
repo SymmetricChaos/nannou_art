@@ -1,7 +1,7 @@
 use itertools_num::linspace;
 use nannou::prelude::*;
 
-use crate::helper::captured_frame_path;
+use crate::capture::captured_frame_path;
 
 pub fn view(app: &App, frame: Frame) {
     if frame.nth() > 188 {

@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use nannou::Draw;
 
 pub mod breadth_first_maze;
