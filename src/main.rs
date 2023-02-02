@@ -7,8 +7,8 @@ pub mod wave;
 
 fn main() {
     //nannou::sketch(wave::view).run();
-    nannou::app(maze::breadth_first_maze_growing::model)
-        .update(maze::breadth_first_maze_growing::update)
-        .simple_window(maze::breadth_first_maze_growing::view)
+    nannou::app(space_filling::l_system::model)
+        .update(space_filling::l_system::update)
+        .simple_window(space_filling::l_system::view)
         .run();
 }
