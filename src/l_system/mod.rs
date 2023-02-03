@@ -1,5 +1,6 @@
 pub mod fern;
 pub mod hilbert;
+pub mod peano;
 pub mod peano_gosper;
 
 use std::collections::HashMap;
@@ -65,7 +66,7 @@ pub fn build_epression(axiom: String, rules: HashMap<char, &str>, depth: usize) 
         }
         expression = new;
     }
-    println!("{expression}");
+    //println!("{expression}");
     expression.chars().rev().collect_vec()
 }
 
@@ -131,7 +132,7 @@ pub fn update(app: &App, model: &mut LSystem, _update: Update) {
                 .segments
                 .iter()
                 .map(|s| s.center().x)
-                .reduce(f32::max)
+                .reduce(f32::min)
                 .unwrap();
             (x_max + x_min) / 2.0
         };
@@ -146,7 +147,7 @@ pub fn update(app: &App, model: &mut LSystem, _update: Update) {
                 .segments
                 .iter()
                 .map(|s| s.center().y)
-                .reduce(f32::max)
+                .reduce(f32::min)
                 .unwrap();
             (y_max + y_min) / 2.0
         };
@@ -166,6 +167,10 @@ pub fn update(app: &App, model: &mut LSystem, _update: Update) {
                     Action::Push => model.push_cursor(),
                     Action::Pop => model.pop_cursor(),
                 }
+            } else {
+                println!("uknown character encountered in expression: {c}");
+                app.quit();
+                break;
             }
         } else {
             //app.quit();

@@ -5,22 +5,27 @@ use nannou::{prelude::BLACK, App, Frame};
 use super::{build_epression, Action, Cursor, LSystem};
 
 pub fn model(_app: &App) -> LSystem {
+    // A-curve: SS+S+SS-S-SS
+    // B-curve: SS-S-SS+S+SS
+
     let expression = build_epression(
-        String::from("X"),
-        HashMap::from([('X', "F+[[X]-X]-F[-FX]+X"), ('F', "FF")]),
-        5,
+        String::from("A"),
+        HashMap::from([
+            ('A', "ASBSA+S+BSASB-S-ASBSA"),
+            ('B', "BSASB-S-ASBSA+S+BSASB"),
+        ]),
+        3,
     );
 
     let actions = HashMap::from([
-        ('X', Action::None),
-        ('F', Action::Forward(25.0)),
-        ('+', Action::Rotate(-0.436332)),
-        ('-', Action::Rotate(0.436332)),
-        ('[', Action::Push),
-        (']', Action::Pop),
+        ('A', Action::None),
+        ('B', Action::None),
+        ('S', Action::Forward(15.0)),
+        ('+', Action::Rotate(-1.5708)),
+        ('-', Action::Rotate(1.5708)),
     ]);
 
-    let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));
+    let cursor = Cursor::new((-194.99623, -194.99829), (0.0, 1.0));
 
     LSystem::new(expression, actions, cursor)
 }
@@ -33,7 +38,7 @@ pub fn view(app: &App, model: &LSystem, frame: Frame) {
     for segment in model.segments.iter() {
         segment
             .line(&draw)
-            .rgba(0.776, 0.811, 0.266, 0.5)
+            .rgba(0.776, 0.811, 0.266, 1.0)
             .weight(1.0)
             .caps_round();
     }

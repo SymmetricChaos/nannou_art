@@ -21,7 +21,8 @@ pub fn model(_app: &App) -> LSystem {
         ('+', Action::Rotate(-1.0472)),
         ('-', Action::Rotate(1.0472)),
     ]);
-    let cursor = Cursor::new((-536.94385, -192.50146), (0.0, 1.0));
+
+    let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));
 
     LSystem::new(expression, actions, cursor)
 }

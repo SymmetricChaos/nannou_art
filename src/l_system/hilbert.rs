@@ -8,7 +8,7 @@ pub fn model(_app: &App) -> LSystem {
     let expression = build_epression(
         String::from("A"),
         HashMap::from([('A', "+BF-AFA-FB+"), ('B', "-AF+BFB+FA-")]),
-        4,
+        2,
     );
 
     let actions = HashMap::from([
@@ -18,6 +18,7 @@ pub fn model(_app: &App) -> LSystem {
         ('+', Action::Rotate(-1.5708)),
         ('-', Action::Rotate(1.5708)),
     ]);
+
     let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));
 
     LSystem::new(expression, actions, cursor)
