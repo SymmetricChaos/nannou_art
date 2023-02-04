@@ -2,6 +2,7 @@ pub mod fern;
 pub mod hilbert;
 pub mod peano;
 pub mod peano_gosper;
+pub mod peano_variety;
 
 use std::collections::HashMap;
 
