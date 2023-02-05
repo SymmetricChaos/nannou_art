@@ -1,3 +1,4 @@
+pub mod bush;
 pub mod corn;
 pub mod fern;
 pub mod hilbert;
@@ -68,7 +69,6 @@ pub fn build_epression(axiom: String, rules: HashMap<char, &str>, depth: usize) 
         }
         expression = new;
     }
-    //println!("{expression}");
     expression.chars().rev().collect_vec()
 }
 
@@ -100,36 +100,29 @@ impl LSystem {
         }
     }
 
-    pub fn forward(&mut self, dist: f32) {
-        let mut new_cursor = self.cursor;
-        new_cursor.forward(dist);
-        self.segments
-            .push(Segment::from((self.cursor.position, new_cursor.position)));
-        self.cursor = new_cursor;
-    }
-
-    pub fn push_cursor(&mut self) {
-        self.stack.push(self.cursor)
-    }
-
-    pub fn pop_cursor(&mut self) {
-        self.cursor = self.stack.pop().expect("pop from empty stack")
-    }
-
-    pub fn rotate(&mut self, angle: f32) {
-        self.cursor.rotate(angle)
-    }
-
-    // Perform the action and return it so that it can be responded to easily
-    pub fn action(&mut self, action: Action) -> Action {
-        match action {
-            Action::None => (),
-            Action::Forward(dist) => self.forward(dist),
-            Action::Rotate(angle) => self.rotate(angle),
-            Action::Push => self.push_cursor(),
-            Action::Pop => self.pop_cursor(),
+    pub fn step(&mut self) -> Option<Action> {
+        if let Some(c) = self.expression.pop() {
+            if let Some(a) = self.actions.get(&c) {
+                match a {
+                    Action::None => (),
+                    Action::Forward(dist) => {
+                        let mut new_cursor = self.cursor;
+                        new_cursor.forward(*dist);
+                        self.segments
+                            .push(Segment::from((self.cursor.position, new_cursor.position)));
+                        self.cursor = new_cursor;
+                    }
+                    Action::Rotate(angle) => self.cursor.rotate(*angle),
+                    Action::Push => self.stack.push(self.cursor),
+                    Action::Pop => self.cursor = self.stack.pop().expect("pop from empty stack"),
+                }
+                Some(*a)
+            } else {
+                panic!("unknown character encountered in expression: {c}")
+            }
+        } else {
+            None
         }
-        action
     }
 }
 
@@ -173,19 +166,12 @@ pub fn steps(app: &App, model: &mut LSystem, _update: Update) {
     }
     // To save drawing time we will loop through action until reaching an Action::Forward
     loop {
-        if let Some(c) = model.expression.pop() {
-            if let Some(action) = model.actions.get(&c) {
-                match model.action(*action) {
-                    Action::Forward(_) => break,
-                    _ => (),
-                }
-            } else {
-                println!("uknown character encountered in expression: {c}");
-                app.quit();
-                break;
+        if let Some(a) = model.step() {
+            match a {
+                Action::Forward(_) => break,
+                _ => (),
             }
         } else {
-            //app.quit();
             break;
         }
     }
@@ -195,18 +181,11 @@ pub fn steps_then_quit(app: &App, model: &mut LSystem, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
-    // To save drawing time we will loop through action until reaching an Action::Forward
     loop {
-        if let Some(c) = model.expression.pop() {
-            if let Some(action) = model.actions.get(&c) {
-                match model.action(*action) {
-                    Action::Forward(_) => break,
-                    _ => (),
-                }
-            } else {
-                println!("uknown character encountered in expression: {c}");
-                app.quit();
-                break;
+        if let Some(a) = model.step() {
+            match a {
+                Action::Forward(_) => break,
+                _ => (),
             }
         } else {
             app.quit();
@@ -220,15 +199,7 @@ pub fn draw(app: &App, model: &mut LSystem, _update: Update) {
         print_center(model)
     }
     loop {
-        if let Some(c) = model.expression.pop() {
-            if let Some(action) = model.actions.get(&c) {
-                model.action(*action);
-            } else {
-                println!("uknown character encountered in expression: {c}");
-                app.quit();
-                break;
-            }
-        } else {
+        if model.step().is_none() {
             break;
         }
     }
