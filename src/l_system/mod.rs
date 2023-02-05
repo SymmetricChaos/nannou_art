@@ -56,6 +56,22 @@ impl Cursor {
     }
 }
 
+pub fn write_expression(axiom: String, rules: HashMap<char, &str>, depth: usize) -> String {
+    let mut expression = axiom;
+    for _ in 0..depth {
+        let mut new = String::new();
+        for c in expression.chars() {
+            if let Some(s) = rules.get(&c) {
+                new.push_str(s)
+            } else {
+                new.push(c)
+            }
+        }
+        expression = new;
+    }
+    expression
+}
+
 pub fn build_epression(axiom: String, rules: HashMap<char, &str>, depth: usize) -> Vec<char> {
     let mut expression = axiom;
     for _ in 0..depth {
@@ -79,6 +95,7 @@ pub enum Action {
     Rotate(f32),
     Push,
     Pop,
+    Dot,
 }
 
 pub struct LSystem {
@@ -86,6 +103,7 @@ pub struct LSystem {
     actions: HashMap<char, Action>,
     stack: Vec<Cursor>,
     segments: Vec<Segment>,
+    dots: Vec<Cursor>,
     cursor: Cursor,
 }
 
@@ -96,6 +114,7 @@ impl LSystem {
             actions,
             stack: Vec::new(),
             segments: Vec::new(),
+            dots: Vec::new(),
             cursor,
         }
     }
@@ -115,6 +134,7 @@ impl LSystem {
                     Action::Rotate(angle) => self.cursor.rotate(*angle),
                     Action::Push => self.stack.push(self.cursor),
                     Action::Pop => self.cursor = self.stack.pop().expect("pop from empty stack"),
+                    Action::Dot => self.dots.push(self.cursor),
                 }
                 Some(*a)
             } else {
@@ -164,10 +184,10 @@ pub fn steps(app: &App, model: &mut LSystem, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
-    // To save drawing time we will loop through action until reaching an Action::Forward
     loop {
         if let Some(a) = model.step() {
             match a {
+                // To save drawing time we break only when reaching an Action that changes the image
                 Action::Forward(_) => break,
                 _ => (),
             }

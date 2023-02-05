@@ -5,13 +5,18 @@ use nannou::{prelude::BLACK, App, Frame};
 use super::{build_epression, Action, Cursor, LSystem};
 
 pub fn model(_app: &App) -> LSystem {
-    let expression = build_epression(String::from("X"), HashMap::from([('X', "F[X][+FX]-FX")]), 5);
+    let expression = build_epression(
+        String::from("X"),
+        HashMap::from([('X', "F[X][+DX]-DX"), ('D', "F")]),
+        6,
+    );
 
     let actions = HashMap::from([
         ('X', Action::None),
-        ('F', Action::Forward(15.0)),
-        ('+', Action::Rotate(-0.5)),
-        ('-', Action::Rotate(0.5)),
+        ('F', Action::Forward(20.0)),
+        ('D', Action::Dot),
+        ('+', Action::Rotate(-0.4)),
+        ('-', Action::Rotate(0.4)),
         ('[', Action::Push),
         (']', Action::Pop),
     ]);
@@ -32,6 +37,13 @@ pub fn view(app: &App, model: &LSystem, frame: Frame) {
             .rgba(0.5, 0.9, 0.266, 0.2)
             .weight(2.0)
             .caps_round();
+    }
+
+    for dot in model.dots.iter() {
+        draw.ellipse()
+            .xy(dot.position)
+            .radius(3.0)
+            .rgba(0.5, 0.9, 0.266, 0.2);
     }
 
     draw.to_frame(app, &frame).unwrap();
