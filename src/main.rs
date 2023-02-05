@@ -8,7 +8,7 @@ pub mod wave;
 fn main() {
     //nannou::sketch(wave::view).run();
     nannou::app(l_system::bush::model)
-        .update(l_system::steps)
+        .update(l_system::draw)
         .simple_window(l_system::bush::view)
         .run();
 }

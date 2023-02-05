@@ -12,6 +12,7 @@ use itertools::Itertools;
 use nannou::{
     math::Vec2Rotate,
     prelude::{Update, Vec2},
+    rand::{seq::SliceRandom, thread_rng},
     App,
 };
 
@@ -88,6 +89,30 @@ pub fn build_epression(axiom: String, rules: HashMap<char, &str>, depth: usize) 
     expression.chars().rev().collect_vec()
 }
 
+pub fn build_epression_stochastic(
+    axiom: String,
+    rules: HashMap<char, Vec<(&str, f32)>>,
+    depth: usize,
+) -> Vec<char> {
+    let mut rng = thread_rng();
+    let mut expression = axiom;
+    for _ in 0..depth {
+        let mut new = String::new();
+        for c in expression.chars() {
+            if let Some(replacements) = rules.get(&c) {
+                match replacements.choose_weighted(&mut rng, |item| item.1) {
+                    Ok(s) => new.push_str(s.0),
+                    Err(e) => panic!("{e}"),
+                };
+            } else {
+                new.push(c)
+            }
+        }
+        expression = new;
+    }
+    expression.chars().rev().collect_vec()
+}
+
 #[derive(Debug, Copy, Clone)]
 pub enum Action {
     None,
@@ -103,7 +128,7 @@ pub struct LSystem {
     actions: HashMap<char, Action>,
     stack: Vec<Cursor>,
     segments: Vec<Segment>,
-    dots: Vec<Cursor>,
+    dots: Vec<Vec2>,
     cursor: Cursor,
 }
 
@@ -134,7 +159,7 @@ impl LSystem {
                     Action::Rotate(angle) => self.cursor.rotate(*angle),
                     Action::Push => self.stack.push(self.cursor),
                     Action::Pop => self.cursor = self.stack.pop().expect("pop from empty stack"),
-                    Action::Dot => self.dots.push(self.cursor),
+                    Action::Dot => self.dots.push(self.cursor.position),
                 }
                 Some(*a)
             } else {

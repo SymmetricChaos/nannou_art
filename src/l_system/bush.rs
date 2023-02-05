@@ -2,18 +2,23 @@ use std::collections::HashMap;
 
 use nannou::{prelude::BLACK, App, Frame};
 
-use super::{build_epression, Action, Cursor, LSystem};
+use super::{build_epression_stochastic, Action, Cursor, LSystem};
 
 pub fn model(_app: &App) -> LSystem {
-    let expression = build_epression(
+    let expression = build_epression_stochastic(
         String::from("X"),
-        HashMap::from([('X', "F[X][+DX]-DX"), ('D', "F")]),
+        HashMap::from([
+            ('X', vec![("F[X][+DX]-DX", 1.0)]),
+            ('F', vec![("L", 1.0), ("S", 1.0)]),
+        ]),
         6,
     );
 
     let actions = HashMap::from([
+        ('F', Action::None),
         ('X', Action::None),
-        ('F', Action::Forward(20.0)),
+        ('L', Action::Forward(35.0)),
+        ('S', Action::Forward(20.0)),
         ('D', Action::Dot),
         ('+', Action::Rotate(-0.4)),
         ('-', Action::Rotate(0.4)),
@@ -41,7 +46,7 @@ pub fn view(app: &App, model: &LSystem, frame: Frame) {
 
     for dot in model.dots.iter() {
         draw.ellipse()
-            .xy(dot.position)
+            .xy(*dot)
             .radius(3.0)
             .rgba(0.5, 0.9, 0.266, 0.2);
     }
