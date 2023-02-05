@@ -119,9 +119,21 @@ impl LSystem {
     pub fn rotate(&mut self, angle: f32) {
         self.cursor.rotate(angle)
     }
+
+    // Perform the action and return it so that it can be responded to easily
+    pub fn action(&mut self, action: Action) -> Action {
+        match action {
+            Action::None => (),
+            Action::Forward(dist) => self.forward(dist),
+            Action::Rotate(angle) => self.rotate(angle),
+            Action::Push => self.push_cursor(),
+            Action::Pop => self.pop_cursor(),
+        }
+        action
+    }
 }
 
-fn get_center(model: &mut LSystem) {
+fn print_center(model: &mut LSystem) {
     let x = {
         let x_max = model
             .segments
@@ -155,23 +167,17 @@ fn get_center(model: &mut LSystem) {
     println!("center: ({x},{y})");
 }
 
-pub fn update(app: &App, model: &mut LSystem, _update: Update) {
+pub fn steps(app: &App, model: &mut LSystem, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
-        get_center(model)
+        print_center(model)
     }
     // To save drawing time we will loop through action until reaching an Action::Forward
     loop {
         if let Some(c) = model.expression.pop() {
             if let Some(action) = model.actions.get(&c) {
-                match action {
-                    Action::None => (),
-                    Action::Forward(dist) => {
-                        model.forward(*dist);
-                        break;
-                    }
-                    Action::Rotate(angle) => model.rotate(*angle),
-                    Action::Push => model.push_cursor(),
-                    Action::Pop => model.pop_cursor(),
+                match model.action(*action) {
+                    Action::Forward(_) => break,
+                    _ => (),
                 }
             } else {
                 println!("uknown character encountered in expression: {c}");
@@ -185,23 +191,17 @@ pub fn update(app: &App, model: &mut LSystem, _update: Update) {
     }
 }
 
-pub fn update_fast(app: &App, model: &mut LSystem, _update: Update) {
+pub fn steps_then_quit(app: &App, model: &mut LSystem, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
-        get_center(model)
+        print_center(model)
     }
     // To save drawing time we will loop through action until reaching an Action::Forward
     loop {
         if let Some(c) = model.expression.pop() {
             if let Some(action) = model.actions.get(&c) {
-                match action {
-                    Action::None => (),
-                    Action::Forward(dist) => {
-                        model.forward(*dist);
-                        //break;
-                    }
-                    Action::Rotate(angle) => model.rotate(*angle),
-                    Action::Push => model.push_cursor(),
-                    Action::Pop => model.pop_cursor(),
+                match model.action(*action) {
+                    Action::Forward(_) => break,
+                    _ => (),
                 }
             } else {
                 println!("uknown character encountered in expression: {c}");
@@ -209,7 +209,26 @@ pub fn update_fast(app: &App, model: &mut LSystem, _update: Update) {
                 break;
             }
         } else {
-            //app.quit();
+            app.quit();
+            break;
+        }
+    }
+}
+
+pub fn draw(app: &App, model: &mut LSystem, _update: Update) {
+    if app.keys.down.contains(&nannou::prelude::Key::C) {
+        print_center(model)
+    }
+    loop {
+        if let Some(c) = model.expression.pop() {
+            if let Some(action) = model.actions.get(&c) {
+                model.action(*action);
+            } else {
+                println!("uknown character encountered in expression: {c}");
+                app.quit();
+                break;
+            }
+        } else {
             break;
         }
     }

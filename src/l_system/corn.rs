@@ -14,14 +14,14 @@ pub fn model(_app: &App) -> LSystem {
     let actions = HashMap::from([
         ('X', Action::None),
         ('Y', Action::None),
-        ('F', Action::Forward(6.0)),
+        ('F', Action::Forward(8.0)),
         ('+', Action::Rotate(-0.436332)),
         ('-', Action::Rotate(0.436332)),
         ('[', Action::Push),
         (']', Action::Pop),
     ]);
 
-    let cursor = Cursor::new((0.0, -400.0), (0.0, 1.0));
+    let cursor = Cursor::new((0.0, -500.0), (0.0, 1.0));
 
     LSystem::new(expression, actions, cursor)
 }

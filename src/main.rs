@@ -7,8 +7,8 @@ pub mod wave;
 
 fn main() {
     //nannou::sketch(wave::view).run();
-    nannou::app(l_system::corn::model)
-        .update(l_system::update_fast)
-        .simple_window(l_system::corn::view)
+    nannou::app(l_system::hilbert::model)
+        .update(l_system::draw)
+        .simple_window(l_system::hilbert::view)
         .run();
 }
