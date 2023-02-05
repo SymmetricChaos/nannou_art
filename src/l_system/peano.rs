@@ -14,7 +14,7 @@ pub fn model(_app: &App) -> LSystem {
             ('A', "ASBSA-S-BSASB+S+ASBSA"),
             ('B', "BSASB+S+ASBSA-S-BSASB"),
         ]),
-        3,
+        4,
     );
 
     let actions = HashMap::from([

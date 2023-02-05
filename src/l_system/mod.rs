@@ -1,3 +1,4 @@
+pub mod corn;
 pub mod fern;
 pub mod hilbert;
 pub mod peano;
@@ -120,39 +121,43 @@ impl LSystem {
     }
 }
 
+fn get_center(model: &mut LSystem) {
+    let x = {
+        let x_max = model
+            .segments
+            .iter()
+            .map(|s| s.center().x)
+            .reduce(f32::max)
+            .unwrap();
+        let x_min = model
+            .segments
+            .iter()
+            .map(|s| s.center().x)
+            .reduce(f32::min)
+            .unwrap();
+        (x_max + x_min) / 2.0
+    };
+    let y = {
+        let y_max = model
+            .segments
+            .iter()
+            .map(|s| s.center().y)
+            .reduce(f32::max)
+            .unwrap();
+        let y_min = model
+            .segments
+            .iter()
+            .map(|s| s.center().y)
+            .reduce(f32::min)
+            .unwrap();
+        (y_max + y_min) / 2.0
+    };
+    println!("center: ({x},{y})");
+}
+
 pub fn update(app: &App, model: &mut LSystem, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
-        let x = {
-            let x_max = model
-                .segments
-                .iter()
-                .map(|s| s.center().x)
-                .reduce(f32::max)
-                .unwrap();
-            let x_min = model
-                .segments
-                .iter()
-                .map(|s| s.center().x)
-                .reduce(f32::min)
-                .unwrap();
-            (x_max + x_min) / 2.0
-        };
-        let y = {
-            let y_max = model
-                .segments
-                .iter()
-                .map(|s| s.center().y)
-                .reduce(f32::max)
-                .unwrap();
-            let y_min = model
-                .segments
-                .iter()
-                .map(|s| s.center().y)
-                .reduce(f32::min)
-                .unwrap();
-            (y_max + y_min) / 2.0
-        };
-        println!("center: ({x},{y})");
+        get_center(model)
     }
     // To save drawing time we will loop through action until reaching an Action::Forward
     loop {
@@ -163,6 +168,36 @@ pub fn update(app: &App, model: &mut LSystem, _update: Update) {
                     Action::Forward(dist) => {
                         model.forward(*dist);
                         break;
+                    }
+                    Action::Rotate(angle) => model.rotate(*angle),
+                    Action::Push => model.push_cursor(),
+                    Action::Pop => model.pop_cursor(),
+                }
+            } else {
+                println!("uknown character encountered in expression: {c}");
+                app.quit();
+                break;
+            }
+        } else {
+            //app.quit();
+            break;
+        }
+    }
+}
+
+pub fn update_fast(app: &App, model: &mut LSystem, _update: Update) {
+    if app.keys.down.contains(&nannou::prelude::Key::C) {
+        get_center(model)
+    }
+    // To save drawing time we will loop through action until reaching an Action::Forward
+    loop {
+        if let Some(c) = model.expression.pop() {
+            if let Some(action) = model.actions.get(&c) {
+                match action {
+                    Action::None => (),
+                    Action::Forward(dist) => {
+                        model.forward(*dist);
+                        //break;
                     }
                     Action::Rotate(angle) => model.rotate(*angle),
                     Action::Push => model.push_cursor(),

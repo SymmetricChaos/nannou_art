@@ -1,42 +1,27 @@
 use std::collections::HashMap;
 
-use nannou::{
-    prelude::{BLACK, RED},
-    App, Frame,
-};
+use nannou::{prelude::BLACK, App, Frame};
 
 use super::{build_epression, Action, Cursor, LSystem};
 
 pub fn model(_app: &App) -> LSystem {
-    // A-curve: ss+s+ss-s-ss (NW)
-    // B-curve: ss-s-ss+s+ss (NE)
-
-    // C-curve: +ss-s-ss+s+ss- (NW)
-    // D-curve: -ss+s+ss-s-ss+ (NE)
-
-    // In the replacement part of the rules A and C can be switched as can B and D
     let expression = build_epression(
-        String::from("-A"),
-        HashMap::from([
-            ('A', "AsDsC+s+DsCsD-s-AsBsA"),
-            ('B', "DsCsB-s-AsBsA+s+BsAsB"),
-            ('C', "+BsAsD-s-AsBsA+s+BsAsB-"),
-            ('D', "-AsBsA+s+BsCsB-s-AsBsA+"),
-        ]),
-        3,
+        String::from("Y"),
+        HashMap::from([('X', "X[-FFF][+FFF]FX"), ('Y', "YFX[+Y][-Y]")]),
+        6,
     );
 
     let actions = HashMap::from([
-        ('A', Action::None),
-        ('B', Action::None),
-        ('C', Action::None),
-        ('D', Action::None),
-        ('s', Action::Forward(15.0)),
-        ('+', Action::Rotate(1.5708)),
-        ('-', Action::Rotate(-1.5708)),
+        ('X', Action::None),
+        ('Y', Action::None),
+        ('F', Action::Forward(6.0)),
+        ('+', Action::Rotate(-0.436332)),
+        ('-', Action::Rotate(0.436332)),
+        ('[', Action::Push),
+        (']', Action::Pop),
     ]);
 
-    let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));
+    let cursor = Cursor::new((0.0, -400.0), (0.0, 1.0));
 
     LSystem::new(expression, actions, cursor)
 }
@@ -49,12 +34,10 @@ pub fn view(app: &App, model: &LSystem, frame: Frame) {
     for segment in model.segments.iter() {
         segment
             .line(&draw)
-            .rgba(0.776, 0.811, 0.266, 1.0)
+            .rgba(0.776, 0.811, 0.266, 0.5)
             .weight(1.0)
             .caps_round();
     }
-
-    draw.ellipse().radius(5.0).color(RED);
 
     draw.to_frame(app, &frame).unwrap();
 

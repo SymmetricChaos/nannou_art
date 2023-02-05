@@ -7,8 +7,8 @@ pub mod wave;
 
 fn main() {
     //nannou::sketch(wave::view).run();
-    nannou::app(l_system::peano_variety::model)
-        .update(l_system::update)
-        .simple_window(l_system::peano_variety::view)
+    nannou::app(l_system::corn::model)
+        .update(l_system::update_fast)
+        .simple_window(l_system::corn::view)
         .run();
 }
