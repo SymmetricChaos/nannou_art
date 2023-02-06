@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use nannou::{prelude::BLACK, App, Frame};
 
-use super::{build_epression, Action, Cursor, LSystem};
+use super::{expression::LSystemExpr, Action, Cursor, LSystem};
 
 pub fn model(_app: &App) -> LSystem {
-    let expression = build_epression(
+    let expression = LSystemExpr::new(
         String::from("Y"),
         HashMap::from([('X', "X[-FFF][+FFF]FX"), ('Y', "YFX[+Y][-Y]")]),
         6,

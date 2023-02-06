@@ -1,5 +1,7 @@
 pub mod bush;
 pub mod corn;
+pub mod cursor;
+pub mod expression;
 pub mod fern;
 pub mod hilbert;
 pub mod peano;
@@ -11,7 +13,6 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 use nannou::{
-    math::Vec2Rotate,
     prelude::{Update, Vec2},
     rand::{seq::SliceRandom, thread_rng},
     App,
@@ -19,52 +20,7 @@ use nannou::{
 
 use crate::segment::Segment;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Cursor {
-    position: Vec2,
-    angle: Vec2,
-}
-
-const DEG_TO_RAD: f32 = std::f32::consts::PI / 180.0;
-
-impl Cursor {
-    pub fn new(position: impl Into<Vec2>, angle: impl Into<Vec2>) -> Self {
-        Cursor {
-            position: Into::into(position),
-            angle: Into::into(angle)
-                .try_normalize()
-                .expect("unable to normalize angle"),
-        }
-    }
-
-    pub fn position(&self) -> Vec2 {
-        self.position
-    }
-
-    pub fn angle(&self) -> Vec2 {
-        self.angle
-    }
-
-    pub fn set_position(&mut self, position: Vec2) {
-        self.position = position
-    }
-
-    pub fn set_angle(&mut self, angle: Vec2) {
-        self.angle = angle.try_normalize().expect("unable to normalize angle")
-    }
-
-    pub fn rotate(&mut self, radians: f32) {
-        self.angle = self.angle.rotate(radians)
-    }
-
-    pub fn rotate_degrees(&mut self, degrees: f32) {
-        self.angle = self.angle.rotate(degrees * DEG_TO_RAD)
-    }
-
-    pub fn forward(&mut self, distance: f32) {
-        self.position += self.angle * distance
-    }
-}
+use self::{cursor::Cursor, expression::LSystemExpr};
 
 pub fn write_expression(axiom: String, rules: HashMap<char, &str>, depth: usize) -> String {
     let mut expression = axiom;
@@ -144,7 +100,7 @@ pub enum Action {
 }
 
 pub struct LSystem {
-    expression: Vec<char>,
+    expression: LSystemExpr,
     actions: HashMap<char, Action>,
     cursor_stack: Vec<Cursor>,
     pub segments: Vec<Segment>,
@@ -153,7 +109,7 @@ pub struct LSystem {
 }
 
 impl LSystem {
-    pub fn new(expression: Vec<char>, actions: HashMap<char, Action>, cursor: Cursor) -> Self {
+    pub fn new(expression: LSystemExpr, actions: HashMap<char, Action>, cursor: Cursor) -> Self {
         LSystem {
             expression,
             actions,
@@ -167,15 +123,17 @@ impl LSystem {
     /// Read the next character of th expression, performs the corresponding action, and then report the action
     /// Returns None if the expression has been read completely
     pub fn step(&mut self) -> Option<Action> {
-        if let Some(c) = self.expression.pop() {
+        if let Some(c) = self.expression.next() {
             if let Some(a) = self.actions.get(&c) {
                 match a {
                     Action::None => (),
                     Action::DrawForward(dist) => {
                         let mut new_cursor = self.cursor;
                         new_cursor.forward(*dist);
-                        self.segments
-                            .push(Segment::from((self.cursor.position, new_cursor.position)));
+                        self.segments.push(Segment::from((
+                            self.cursor.position(),
+                            new_cursor.position(),
+                        )));
                         self.cursor = new_cursor;
                     }
                     Action::MoveForward(dist) => self.cursor.forward(*dist),
@@ -185,7 +143,7 @@ impl LSystem {
                     Action::PopCursor => {
                         self.cursor = self.cursor_stack.pop().expect("pop from empty stack")
                     }
-                    Action::Dot => self.dots.push(self.cursor.position),
+                    Action::Dot => self.dots.push(self.cursor.position()),
                 }
                 Some(*a)
             } else {
