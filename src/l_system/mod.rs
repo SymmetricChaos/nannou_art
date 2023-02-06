@@ -5,6 +5,7 @@ pub mod hilbert;
 pub mod peano;
 pub mod peano_gosper;
 pub mod peano_variety;
+pub mod tree;
 
 use std::collections::HashMap;
 
