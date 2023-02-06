@@ -31,9 +31,9 @@ pub fn model(_app: &App) -> LSystem {
         ('B', Action::None),
         ('C', Action::None),
         ('D', Action::None),
-        ('s', Action::Forward(15.0)),
-        ('+', Action::Rotate(1.5708)),
-        ('-', Action::Rotate(-1.5708)),
+        ('s', Action::DrawForward(15.0)),
+        ('+', Action::RotateRad(1.5708)),
+        ('-', Action::RotateRad(-1.5708)),
     ]);
 
     let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));

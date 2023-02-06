@@ -17,9 +17,9 @@ pub fn model(_app: &App) -> LSystem {
     let actions = HashMap::from([
         ('X', Action::None),
         ('Y', Action::None),
-        ('F', Action::Forward(10.0)),
-        ('+', Action::Rotate(-1.0472)),
-        ('-', Action::Rotate(1.0472)),
+        ('F', Action::DrawForward(10.0)),
+        ('+', Action::RotateRad(-1.0472)),
+        ('-', Action::RotateRad(1.0472)),
     ]);
 
     let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));

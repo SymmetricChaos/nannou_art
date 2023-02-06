@@ -25,11 +25,15 @@ pub struct Cursor {
     angle: Vec2,
 }
 
+const DEG_TO_RAD: f32 = std::f32::consts::PI / 180.0;
+
 impl Cursor {
     pub fn new(position: impl Into<Vec2>, angle: impl Into<Vec2>) -> Self {
         Cursor {
             position: Into::into(position),
-            angle: Into::into(angle).normalize(),
+            angle: Into::into(angle)
+                .try_normalize()
+                .expect("unable to normalize angle"),
         }
     }
 
@@ -46,11 +50,15 @@ impl Cursor {
     }
 
     pub fn set_angle(&mut self, angle: Vec2) {
-        self.angle = angle
+        self.angle = angle.try_normalize().expect("unable to normalize angle")
     }
 
     pub fn rotate(&mut self, radians: f32) {
         self.angle = self.angle.rotate(radians)
+    }
+
+    pub fn rotate_degrees(&mut self, degrees: f32) {
+        self.angle = self.angle.rotate(degrees * DEG_TO_RAD)
     }
 
     pub fn forward(&mut self, distance: f32) {
@@ -114,22 +122,33 @@ pub fn build_epression_stochastic(
     expression.chars().rev().collect_vec()
 }
 
+/// Actions when reading the L-System
 #[derive(Debug, Copy, Clone)]
 pub enum Action {
+    /// Do nothing
     None,
-    Forward(f32),
-    Rotate(f32),
-    Push,
-    Pop,
+    /// Move the Cursor forward
+    MoveForward(f32),
+    /// Move the Cursor forward and save a Segment representing a line between the positions to self.segments
+    DrawForward(f32),
+    /// Rotate the Cursor by an angle given in radians
+    RotateRad(f32),
+    /// Rotate the Cursor by an angle given in degrees
+    RotateDeg(f32),
+    /// Push a copy of the Cursor to the cursor stack
+    PushCursor,
+    /// Pop the top item of the cursor stack and replace the Cursor with it
+    PopCursor,
+    /// Save the position of the Cursor to self.dots
     Dot,
 }
 
 pub struct LSystem {
     expression: Vec<char>,
     actions: HashMap<char, Action>,
-    stack: Vec<Cursor>,
-    segments: Vec<Segment>,
-    dots: Vec<Vec2>,
+    cursor_stack: Vec<Cursor>,
+    pub segments: Vec<Segment>,
+    pub dots: Vec<Vec2>,
     cursor: Cursor,
 }
 
@@ -138,28 +157,34 @@ impl LSystem {
         LSystem {
             expression,
             actions,
-            stack: Vec::new(),
+            cursor_stack: Vec::new(),
             segments: Vec::new(),
             dots: Vec::new(),
             cursor,
         }
     }
 
+    /// Read the next character of th expression, performs the corresponding action, and then report the action
+    /// Returns None if the expression has been read completely
     pub fn step(&mut self) -> Option<Action> {
         if let Some(c) = self.expression.pop() {
             if let Some(a) = self.actions.get(&c) {
                 match a {
                     Action::None => (),
-                    Action::Forward(dist) => {
+                    Action::DrawForward(dist) => {
                         let mut new_cursor = self.cursor;
                         new_cursor.forward(*dist);
                         self.segments
                             .push(Segment::from((self.cursor.position, new_cursor.position)));
                         self.cursor = new_cursor;
                     }
-                    Action::Rotate(angle) => self.cursor.rotate(*angle),
-                    Action::Push => self.stack.push(self.cursor),
-                    Action::Pop => self.cursor = self.stack.pop().expect("pop from empty stack"),
+                    Action::MoveForward(dist) => self.cursor.forward(*dist),
+                    Action::RotateRad(radians) => self.cursor.rotate(*radians),
+                    Action::RotateDeg(degrees) => self.cursor.rotate_degrees(*degrees),
+                    Action::PushCursor => self.cursor_stack.push(self.cursor),
+                    Action::PopCursor => {
+                        self.cursor = self.cursor_stack.pop().expect("pop from empty stack")
+                    }
                     Action::Dot => self.dots.push(self.cursor.position),
                 }
                 Some(*a)
@@ -214,7 +239,7 @@ pub fn steps(app: &App, model: &mut LSystem, _update: Update) {
         if let Some(a) = model.step() {
             match a {
                 // To save drawing time we break only when reaching an Action that changes the image
-                Action::Forward(_) => break,
+                Action::DrawForward(_) => break,
                 _ => (),
             }
         } else {
@@ -230,7 +255,7 @@ pub fn steps_then_quit(app: &App, model: &mut LSystem, _update: Update) {
     loop {
         if let Some(a) = model.step() {
             match a {
-                Action::Forward(_) => break,
+                Action::DrawForward(_) => break,
                 _ => (),
             }
         } else {
