@@ -11,72 +11,14 @@ pub mod tree;
 
 use std::collections::HashMap;
 
-use itertools::Itertools;
 use nannou::{
     prelude::{Update, Vec2},
-    rand::{seq::SliceRandom, thread_rng},
     App,
 };
 
 use crate::segment::Segment;
 
-use self::{cursor::Cursor, expression::LSystemExpr};
-
-pub fn write_expression(axiom: String, rules: HashMap<char, &str>, depth: usize) -> String {
-    let mut expression = axiom;
-    for _ in 0..depth {
-        let mut new = String::new();
-        for c in expression.chars() {
-            if let Some(s) = rules.get(&c) {
-                new.push_str(s)
-            } else {
-                new.push(c)
-            }
-        }
-        expression = new;
-    }
-    expression
-}
-
-pub fn build_epression(axiom: String, rules: HashMap<char, &str>, depth: usize) -> Vec<char> {
-    let mut expression = axiom;
-    for _ in 0..depth {
-        let mut new = String::new();
-        for c in expression.chars() {
-            if let Some(s) = rules.get(&c) {
-                new.push_str(s)
-            } else {
-                new.push(c)
-            }
-        }
-        expression = new;
-    }
-    expression.chars().rev().collect_vec()
-}
-
-pub fn build_epression_stochastic(
-    axiom: String,
-    rules: HashMap<char, Vec<(&str, f32)>>,
-    depth: usize,
-) -> Vec<char> {
-    let mut rng = thread_rng();
-    let mut expression = axiom;
-    for _ in 0..depth {
-        let mut new = String::new();
-        for c in expression.chars() {
-            if let Some(replacements) = rules.get(&c) {
-                match replacements.choose_weighted(&mut rng, |item| item.1) {
-                    Ok(s) => new.push_str(s.0),
-                    Err(e) => panic!("{e}"),
-                };
-            } else {
-                new.push(c)
-            }
-        }
-        expression = new;
-    }
-    expression.chars().rev().collect_vec()
-}
+use self::cursor::Cursor;
 
 /// Actions when reading the L-System
 #[derive(Debug, Copy, Clone)]
@@ -99,8 +41,8 @@ pub enum Action {
     Dot,
 }
 
-pub struct LSystem {
-    expression: LSystemExpr,
+pub struct LSystem<I: Iterator<Item = char>> {
+    expression: I,
     actions: HashMap<char, Action>,
     cursor_stack: Vec<Cursor>,
     pub segments: Vec<Segment>,
@@ -108,8 +50,8 @@ pub struct LSystem {
     cursor: Cursor,
 }
 
-impl LSystem {
-    pub fn new(expression: LSystemExpr, actions: HashMap<char, Action>, cursor: Cursor) -> Self {
+impl<I: Iterator<Item = char>> LSystem<I> {
+    pub fn new(expression: I, actions: HashMap<char, Action>, cursor: Cursor) -> Self {
         LSystem {
             expression,
             actions,
@@ -155,7 +97,7 @@ impl LSystem {
     }
 }
 
-fn print_center(model: &mut LSystem) {
+fn print_center<I: Iterator<Item = char>>(model: &mut LSystem<I>) {
     let x = {
         let x_max = model
             .segments
@@ -189,7 +131,7 @@ fn print_center(model: &mut LSystem) {
     println!("center: ({x},{y})");
 }
 
-pub fn steps(app: &App, model: &mut LSystem, _update: Update) {
+pub fn steps<I: Iterator<Item = char>>(app: &App, model: &mut LSystem<I>, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
@@ -206,7 +148,11 @@ pub fn steps(app: &App, model: &mut LSystem, _update: Update) {
     }
 }
 
-pub fn steps_then_quit(app: &App, model: &mut LSystem, _update: Update) {
+pub fn steps_then_quit<I: Iterator<Item = char>>(
+    app: &App,
+    model: &mut LSystem<I>,
+    _update: Update,
+) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
@@ -223,7 +169,7 @@ pub fn steps_then_quit(app: &App, model: &mut LSystem, _update: Update) {
     }
 }
 
-pub fn draw(app: &App, model: &mut LSystem, _update: Update) {
+pub fn draw<I: Iterator<Item = char>>(app: &App, model: &mut LSystem<I>, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
