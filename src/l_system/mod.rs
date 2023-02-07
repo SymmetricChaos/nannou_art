@@ -42,8 +42,8 @@ pub enum Action {
     Dot,
 }
 
-pub struct LSystem<I: Iterator<Item = char>> {
-    expression: I,
+pub struct LSystem {
+    expression: Box<dyn Iterator<Item = char>>,
     actions: HashMap<char, Action>,
     cursor_stack: Vec<Cursor>,
     pub segments: Vec<Segment>,
@@ -51,8 +51,12 @@ pub struct LSystem<I: Iterator<Item = char>> {
     cursor: Cursor,
 }
 
-impl<I: Iterator<Item = char>> LSystem<I> {
-    pub fn new(expression: I, actions: HashMap<char, Action>, cursor: Cursor) -> Self {
+impl LSystem {
+    pub fn new(
+        expression: Box<dyn Iterator<Item = char>>,
+        actions: HashMap<char, Action>,
+        cursor: Cursor,
+    ) -> Self {
         LSystem {
             expression,
             actions,
@@ -98,7 +102,7 @@ impl<I: Iterator<Item = char>> LSystem<I> {
     }
 }
 
-fn print_center<I: Iterator<Item = char>>(model: &mut LSystem<I>) {
+fn print_center(model: &mut LSystem) {
     let x = {
         let x_max = model
             .segments
@@ -132,7 +136,7 @@ fn print_center<I: Iterator<Item = char>>(model: &mut LSystem<I>) {
     println!("center: ({x},{y})");
 }
 
-pub fn steps<I: Iterator<Item = char>>(app: &App, model: &mut LSystem<I>, _update: Update) {
+pub fn steps(app: &App, model: &mut LSystem, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
@@ -149,11 +153,7 @@ pub fn steps<I: Iterator<Item = char>>(app: &App, model: &mut LSystem<I>, _updat
     }
 }
 
-pub fn steps_then_quit<I: Iterator<Item = char>>(
-    app: &App,
-    model: &mut LSystem<I>,
-    _update: Update,
-) {
+pub fn steps_then_quit(app: &App, model: &mut LSystem, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
@@ -170,7 +170,7 @@ pub fn steps_then_quit<I: Iterator<Item = char>>(
     }
 }
 
-pub fn draw<I: Iterator<Item = char>>(app: &App, model: &mut LSystem<I>, _update: Update) {
+pub fn draw(app: &App, model: &mut LSystem, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }

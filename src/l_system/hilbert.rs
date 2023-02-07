@@ -4,7 +4,7 @@ use nannou::{prelude::BLACK, App, Frame};
 
 use super::{expression::LSystemExpr, Action, Cursor, LSystem};
 
-pub fn model(_app: &App) -> LSystem<LSystemExpr> {
+pub fn model(_app: &App) -> LSystem {
     let expression = LSystemExpr::new(
         String::from("A"),
         HashMap::from([('A', "+BF-AFA-FB+"), ('B', "-AF+BFB+FA-")]),
@@ -21,10 +21,10 @@ pub fn model(_app: &App) -> LSystem<LSystemExpr> {
 
     let cursor = Cursor::new((-377.99478, -377.99304), (0.0, 1.0));
 
-    LSystem::new(expression, actions, cursor)
+    LSystem::new(Box::new(expression), actions, cursor)
 }
 
-pub fn view(app: &App, model: &LSystem<LSystemExpr>, frame: Frame) {
+pub fn view(app: &App, model: &LSystem, frame: Frame) {
     let draw = app.draw();
 
     draw.background().color(BLACK);

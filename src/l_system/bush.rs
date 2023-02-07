@@ -4,7 +4,7 @@ use nannou::{prelude::BLACK, App, Frame};
 
 use super::{expression::LSystemExprStochastic, Action, Cursor, LSystem};
 
-pub fn model(_app: &App) -> LSystem<LSystemExprStochastic> {
+pub fn model(_app: &App) -> LSystem {
     let expression = LSystemExprStochastic::new(
         String::from("X"),
         HashMap::from([
@@ -28,10 +28,10 @@ pub fn model(_app: &App) -> LSystem<LSystemExprStochastic> {
 
     let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));
 
-    LSystem::new(expression, actions, cursor)
+    LSystem::new(Box::new(expression), actions, cursor)
 }
 
-pub fn view(app: &App, model: &LSystem<LSystemExprStochastic>, frame: Frame) {
+pub fn view(app: &App, model: &LSystem, frame: Frame) {
     let draw = app.draw();
 
     draw.background().color(BLACK);

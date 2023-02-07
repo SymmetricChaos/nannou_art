@@ -7,7 +7,7 @@ use nannou::{
 
 use super::{expression::LSystemExpr, Action, Cursor, LSystem};
 
-pub fn model(_app: &App) -> LSystem<LSystemExpr> {
+pub fn model(_app: &App) -> LSystem {
     // A-curve: ss+s+ss-s-ss (NW)
     // B-curve: ss-s-ss+s+ss (NE)
 
@@ -38,10 +38,10 @@ pub fn model(_app: &App) -> LSystem<LSystemExpr> {
 
     let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));
 
-    LSystem::new(expression, actions, cursor)
+    LSystem::new(Box::new(expression), actions, cursor)
 }
 
-pub fn view(app: &App, model: &LSystem<LSystemExpr>, frame: Frame) {
+pub fn view(app: &App, model: &LSystem, frame: Frame) {
     let draw = app.draw();
 
     draw.background().color(BLACK);
