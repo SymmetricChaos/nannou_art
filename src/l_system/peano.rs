@@ -2,13 +2,13 @@ use std::collections::HashMap;
 
 use nannou::{prelude::BLACK, App, Frame};
 
-use super::{expression::LSystemExpr, Action, Cursor, LSystem};
+use super::{expression::LSystemBuilder, Action, Cursor, LSystem};
 
 pub fn model(_app: &App) -> LSystem {
     // A-curve: SS-S-SS+S+SS
     // B-curve: SS+S+SS-S-SS
 
-    let expression = LSystemExpr::new(
+    let expression = LSystemBuilder::new(
         String::from("A"),
         HashMap::from([
             ('A', "ASBSA-S-BSASB+S+ASBSA"),

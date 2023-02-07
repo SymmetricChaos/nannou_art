@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use nannou::{prelude::BLACK, App, Frame};
 
-use super::{expression::LSystemExprStochastic, Action, Cursor, LSystem};
+use super::{expression::LSystemBuilderStochastic, Action, Cursor, LSystem};
 
 pub fn model(_app: &App) -> LSystem {
-    let expression = LSystemExprStochastic::new(
+    let expression = LSystemBuilderStochastic::new(
         String::from("X"),
         HashMap::from([
             ('X', vec![("F[X][+DX]-DX", 1.0)]),

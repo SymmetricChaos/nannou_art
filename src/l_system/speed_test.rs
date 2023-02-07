@@ -1,7 +1,7 @@
 #[test]
 pub fn string_model() {
     use super::{cursor::Cursor, expression::LSystemString, LSystem};
-    use crate::l_system::{expression::LSystemExpr, Action};
+    use crate::l_system::{expression::LSystemBuilder, Action};
     use std::{collections::HashMap, time::Instant};
 
     let axiom = String::from("X");
@@ -16,7 +16,7 @@ pub fn string_model() {
             .count()
             * 4;
 
-    let expression_struct = LSystemExpr::new(axiom.clone(), rules.clone(), depth);
+    let expression_struct = LSystemBuilder::new(axiom.clone(), rules.clone(), depth);
 
     let actions = HashMap::from([
         ('F', Action::DrawForward(15.0)),

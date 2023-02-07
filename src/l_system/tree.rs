@@ -2,26 +2,26 @@ use std::collections::HashMap;
 
 use nannou::{prelude::BLACK, App, Frame};
 
-use super::{expression::LSystemExpr, Action, Cursor, LSystem};
+use super::{expression::LSystemBuilder, Action, Cursor, LSystem};
 
 pub fn model(_app: &App) -> LSystem {
-    let expression = LSystemExpr::new(
+    let expression = LSystemBuilder::new(
         String::from("X"),
         HashMap::from([('X', "F[X][+DX]-DX"), ('D', "F")]),
-        6,
+        7,
     );
 
     let actions = HashMap::from([
-        ('F', Action::DrawForward(15.0)),
         ('X', Action::None),
         ('D', Action::Dot),
-        ('+', Action::RotateRad(-1.04)),
-        ('-', Action::RotateRad(1.04)),
+        ('F', Action::DrawForward(40.0)),
+        ('+', Action::RotateDeg(-25.0)),
+        ('-', Action::RotateDeg(25.0)),
         ('[', Action::PushCursor),
         (']', Action::PopCursor),
     ]);
 
-    let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));
+    let cursor = Cursor::new((0.0, -200.0), (0.0, 1.0));
 
     LSystem::new(Box::new(expression), actions, cursor)
 }
@@ -34,16 +34,13 @@ pub fn view(app: &App, model: &LSystem, frame: Frame) {
     for segment in model.segments.iter() {
         segment
             .line(&draw)
-            .rgba(0.5, 0.9, 0.266, 0.2)
+            .rgba(0.5, 0.3, 0.9, 0.2)
             .weight(2.0)
             .caps_round();
     }
 
     for dot in model.dots.iter() {
-        draw.ellipse()
-            .xy(*dot)
-            .radius(3.0)
-            .rgba(0.5, 0.9, 0.266, 0.2);
+        draw.ellipse().xy(*dot).radius(3.0).rgba(0.9, 0.2, 0.2, 0.2);
     }
 
     draw.to_frame(app, &frame).unwrap();

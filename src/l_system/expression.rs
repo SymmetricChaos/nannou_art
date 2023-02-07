@@ -22,7 +22,7 @@ pub fn write_expression(axiom: String, rules: HashMap<char, &str>, depth: usize)
 
 pub fn write_expression_stochastic(
     axiom: String,
-    rules: HashMap<char, Vec<(&'static str, f32)>>,
+    rules: HashMap<char, Vec<(&str, f32)>>,
     depth: usize,
 ) -> String {
     let mut expression = axiom;
@@ -72,11 +72,7 @@ pub struct LSystemStringStochastic {
 }
 
 impl LSystemStringStochastic {
-    pub fn new(
-        axiom: String,
-        rules: HashMap<char, Vec<(&'static str, f32)>>,
-        depth: usize,
-    ) -> Self {
+    pub fn new(axiom: String, rules: HashMap<char, Vec<(&str, f32)>>, depth: usize) -> Self {
         LSystemStringStochastic {
             chars: write_expression_stochastic(axiom, rules, depth)
                 .chars()
@@ -94,14 +90,14 @@ impl Iterator for LSystemStringStochastic {
     }
 }
 
-pub struct LSystemExpr {
+pub struct LSystemBuilder {
     rules: HashMap<char, &'static str>,
     depth: usize,
     layers: Vec<Vec<char>>,
     ended: bool,
 }
 
-impl LSystemExpr {
+impl LSystemBuilder {
     pub fn new(axiom: String, rules: HashMap<char, &'static str>, depth: usize) -> Self {
         let mut layers = vec![Vec::<char>::new(); depth + 1];
         layers[depth] = axiom.chars().rev().collect_vec();
@@ -123,7 +119,7 @@ impl LSystemExpr {
     }
 }
 
-impl Iterator for LSystemExpr {
+impl Iterator for LSystemBuilder {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -149,14 +145,14 @@ impl Iterator for LSystemExpr {
     }
 }
 
-pub struct LSystemExprStochastic {
+pub struct LSystemBuilderStochastic {
     rules: HashMap<char, Vec<(&'static str, f32)>>,
     depth: usize,
     layers: Vec<Vec<char>>,
     ended: bool,
 }
 
-impl LSystemExprStochastic {
+impl LSystemBuilderStochastic {
     pub fn new(
         axiom: String,
         rules: HashMap<char, Vec<(&'static str, f32)>>,
@@ -186,7 +182,7 @@ impl LSystemExprStochastic {
     }
 }
 
-impl Iterator for LSystemExprStochastic {
+impl Iterator for LSystemBuilderStochastic {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -214,7 +210,7 @@ impl Iterator for LSystemExprStochastic {
 
 #[test]
 fn expr_test() {
-    let mut e = LSystemExpr::new(
+    let mut e = LSystemBuilder::new(
         String::from("X"),
         HashMap::from([('X', "F[X][+DX]-DX"), ('D', "F")]),
         4,

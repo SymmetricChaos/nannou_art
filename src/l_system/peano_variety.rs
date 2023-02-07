@@ -5,7 +5,7 @@ use nannou::{
     App, Frame,
 };
 
-use super::{expression::LSystemExpr, Action, Cursor, LSystem};
+use super::{expression::LSystemBuilder, Action, Cursor, LSystem};
 
 pub fn model(_app: &App) -> LSystem {
     // A-curve: ss+s+ss-s-ss (NW)
@@ -15,7 +15,7 @@ pub fn model(_app: &App) -> LSystem {
     // D-curve: -ss+s+ss-s-ss+ (NE)
 
     // In the replacement part of the rules A and C can be switched as can B and D
-    let expression = LSystemExpr::new(
+    let expression = LSystemBuilder::new(
         String::from("-A"),
         HashMap::from([
             ('A', "AsDsC+s+DsCsD-s-AsBsA"),
