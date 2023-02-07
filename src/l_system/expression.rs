@@ -20,6 +20,29 @@ pub fn write_expression(axiom: String, rules: HashMap<char, &str>, depth: usize)
     expression
 }
 
+pub struct LSystemString {
+    chars: Vec<char>,
+}
+
+impl LSystemString {
+    pub fn new(axiom: String, rules: HashMap<char, &str>, depth: usize) -> Self {
+        LSystemString {
+            chars: write_expression(axiom, rules, depth)
+                .chars()
+                .rev()
+                .collect_vec(),
+        }
+    }
+}
+
+impl Iterator for LSystemString {
+    type Item = char;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.chars.pop()
+    }
+}
+
 // pub fn build_epression(axiom: String, rules: HashMap<char, &str>, depth: usize) -> Vec<char> {
 //     let mut expression = axiom;
 //     for _ in 0..depth {

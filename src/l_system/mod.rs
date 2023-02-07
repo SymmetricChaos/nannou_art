@@ -7,6 +7,7 @@ pub mod hilbert;
 pub mod peano;
 pub mod peano_gosper;
 pub mod peano_variety;
+pub mod speed_test;
 pub mod tree;
 
 use std::collections::HashMap;
@@ -62,7 +63,7 @@ impl<I: Iterator<Item = char>> LSystem<I> {
         }
     }
 
-    /// Read the next character of th expression, performs the corresponding action, and then report the action
+    /// Read the next character of the expression, perform the corresponding action, and then report the action
     /// Returns None if the expression has been read completely
     pub fn step(&mut self) -> Option<Action> {
         if let Some(c) = self.expression.next() {
