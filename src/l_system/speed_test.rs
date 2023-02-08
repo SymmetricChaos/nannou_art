@@ -5,15 +5,7 @@ pub fn string_model() {
     use std::{collections::HashMap, time::Instant};
 
     let axiom = String::from("X");
-    let rules = HashMap::from([
-        ('X', "F[X][+DX]-DX"),
-        ('D', "F"),
-        // ('F', "F"),
-        // ('+', "+"),
-        // ('-', "-"),
-        // ('[', "["),
-        // (']', "]"),
-    ]);
+    let rules = HashMap::from([('X', "F[X][+DX]-DX"), ('D', "F")]);
     let depth = 13_usize;
 
     let expression_string = LSystemString::new(axiom.clone(), rules.clone(), depth);

@@ -22,10 +22,6 @@ pub fn model(_app: &App) -> LSystem {
             ('B', "DsCsB-s-AsBsA+s+BsAsB"),
             ('C', "+BsAsD-s-AsBsA+s+BsAsB-"),
             ('D', "-AsBsA+s+BsCsB-s-AsBsA+"),
-            ('F', "F"),
-            ('+', "+"),
-            ('-', "-"),
-            ('s', "s"),
         ]),
         3,
     );

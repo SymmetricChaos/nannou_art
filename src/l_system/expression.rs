@@ -126,21 +126,27 @@ impl<'a> Iterator for LSystemBuilder<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut ptr = 0_usize;
+        let mut ptr = 1_usize;
 
         loop {
+            // If the pointer has moved too far then we're out of characters
             if ptr > self.depth {
                 return None;
             } else {
+                // If the first iterator has more characters use them
                 if let Some(c) = self.layers[0].next() {
                     return Some(c);
                 } else {
+                    // Otherwise check the iterator pointed to amd try to get the next character
+                    // If it is a ternimal symbol then we can short circuit and just return it
+                    // Otherwise load the iterator before it and move the pointer back
                     if let Some(c) = self.layers[ptr].next() {
                         match self.chars_from_rules(&c) {
                             OneOrMany::One(c) => return Some(c),
                             OneOrMany::Many(cs) => self.layers[ptr - 1] = cs,
                         }
                         ptr -= 1
+                    // If the iterator is empty move the pointer up
                     } else {
                         ptr += 1
                     }
@@ -185,7 +191,7 @@ impl<'a> Iterator for LSystemBuilderStochastic<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut ptr = 0_usize;
+        let mut ptr = 1_usize;
 
         loop {
             if ptr > self.depth {

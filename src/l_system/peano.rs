@@ -13,9 +13,6 @@ pub fn model(_app: &App) -> LSystem {
         HashMap::from([
             ('A', "ASBSA-S-BSASB+S+ASBSA"),
             ('B', "BSASB+S+ASBSA-S-BSASB"),
-            ('S', "S"),
-            ('+', "+"),
-            ('-', "-"),
         ]),
         4,
     );
