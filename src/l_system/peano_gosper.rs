@@ -6,10 +6,13 @@ use super::{expression::LSystemBuilder, Action, Cursor, LSystem};
 
 pub fn model(_app: &App) -> LSystem {
     let expression = LSystemBuilder::new(
-        String::from("X"),
+        "X",
         HashMap::from([
             ('X', "X+YF++YF-FX--FXFX-YF+"),
             ('Y', "-FX+YFYF++YF+FX--FX-Y"),
+            ('F', "F"),
+            ('+', "+"),
+            ('-', "-"),
         ]),
         4,
     );

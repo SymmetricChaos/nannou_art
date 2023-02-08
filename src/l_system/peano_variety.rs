@@ -16,12 +16,16 @@ pub fn model(_app: &App) -> LSystem {
 
     // In the replacement part of the rules A and C can be switched as can B and D
     let expression = LSystemBuilder::new(
-        String::from("-A"),
+        "-A",
         HashMap::from([
             ('A', "AsDsC+s+DsCsD-s-AsBsA"),
             ('B', "DsCsB-s-AsBsA+s+BsAsB"),
             ('C', "+BsAsD-s-AsBsA+s+BsAsB-"),
             ('D', "-AsBsA+s+BsCsB-s-AsBsA+"),
+            ('F', "F"),
+            ('+', "+"),
+            ('-', "-"),
+            ('s', "s"),
         ]),
         3,
     );

@@ -90,36 +90,89 @@ impl Iterator for LSystemStringStochastic {
     }
 }
 
-pub struct LSystemBuilder {
-    rules: HashMap<char, &'static str>,
+// pub struct LSystemBuilder {
+//     rules: HashMap<char, &'static str>,
+//     depth: usize,
+//     layers: Vec<Vec<char>>,
+//     ended: bool,
+// }
+
+// impl LSystemBuilder {
+//     pub fn new(axiom: String, rules: HashMap<char, &'static str>, depth: usize) -> Self {
+//         let mut layers = vec![Vec::<char>::new(); depth + 1];
+//         layers[depth] = axiom.chars().rev().collect_vec();
+
+//         Self {
+//             rules,
+//             depth,
+//             layers,
+//             ended: false,
+//         }
+//     }
+
+//     fn vec_from_rules(&self, c: &char) -> Vec<char> {
+//         if let Some(s) = self.rules.get(&c) {
+//             s.chars().rev().collect_vec()
+//         } else {
+//             vec![*c]
+//         }
+//     }
+// }
+
+// impl Iterator for LSystemBuilder {
+//     type Item = char;
+
+//     fn next(&mut self) -> Option<Self::Item> {
+//         let mut ptr = 0_usize;
+
+//         loop {
+//             if ptr > self.depth {
+//                 self.ended = true;
+//             }
+//             if self.ended {
+//                 return None;
+//             }
+//             if let Some(c) = self.layers[0].pop() {
+//                 return Some(c);
+//             }
+//             if let Some(c) = self.layers[ptr].pop() {
+//                 self.layers[ptr - 1] = self.vec_from_rules(&c);
+//                 ptr -= 1
+//             } else {
+//                 ptr += 1
+//             }
+//         }
+//     }
+// }
+
+pub struct LSystemBuilder<'a> {
+    rules: HashMap<char, &'a str>,
     depth: usize,
-    layers: Vec<Vec<char>>,
-    ended: bool,
+    layers: Vec<std::str::Chars<'a>>,
 }
 
-impl LSystemBuilder {
-    pub fn new(axiom: String, rules: HashMap<char, &'static str>, depth: usize) -> Self {
-        let mut layers = vec![Vec::<char>::new(); depth + 1];
-        layers[depth] = axiom.chars().rev().collect_vec();
+impl<'a> LSystemBuilder<'a> {
+    pub fn new(axiom: &'a str, rules: HashMap<char, &'a str>, depth: usize) -> Self {
+        let mut layers = vec!["".chars(); depth + 1];
+        layers[depth] = axiom.chars();
 
         Self {
             rules,
             depth,
             layers,
-            ended: false,
         }
     }
 
-    fn vec_from_rules(&self, c: &char) -> Vec<char> {
+    fn chars_from_rules(&self, c: &char) -> std::str::Chars<'a> {
         if let Some(s) = self.rules.get(&c) {
-            s.chars().rev().collect_vec()
+            s.chars()
         } else {
-            vec![*c]
+            panic!("unknown character encountered: {c}")
         }
     }
 }
 
-impl Iterator for LSystemBuilder {
+impl<'a> Iterator for LSystemBuilder<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -127,19 +180,18 @@ impl Iterator for LSystemBuilder {
 
         loop {
             if ptr > self.depth {
-                self.ended = true;
-            }
-            if self.ended {
                 return None;
-            }
-            if ptr == 0 && self.layers[0].len() > 0 {
-                return self.layers[0].pop();
-            }
-            if let Some(c) = self.layers[ptr].pop() {
-                self.layers[ptr - 1] = self.vec_from_rules(&c);
-                ptr -= 1
             } else {
-                ptr += 1
+                if let Some(c) = self.layers[0].next() {
+                    return Some(c);
+                } else {
+                    if let Some(c) = self.layers[ptr].next() {
+                        self.layers[ptr - 1] = self.chars_from_rules(&c);
+                        ptr -= 1
+                    } else {
+                        ptr += 1
+                    }
+                }
             }
         }
     }
@@ -195,8 +247,8 @@ impl Iterator for LSystemBuilderStochastic {
             if self.ended {
                 return None;
             }
-            if ptr == 0 && self.layers[0].len() > 0 {
-                return self.layers[0].pop();
+            if let Some(c) = self.layers[0].pop() {
+                return Some(c);
             }
             if let Some(c) = self.layers[ptr].pop() {
                 self.layers[ptr - 1] = self.vec_from_rules(&c);
@@ -210,11 +262,7 @@ impl Iterator for LSystemBuilderStochastic {
 
 #[test]
 fn expr_test() {
-    let mut e = LSystemBuilder::new(
-        String::from("X"),
-        HashMap::from([('X', "F[X][+DX]-DX"), ('D', "F")]),
-        4,
-    );
+    let mut e = LSystemBuilder::new("X", HashMap::from([('X', "F[X][+DX]-DX"), ('D', "F")]), 4);
 
     let s = write_expression(
         String::from("X"),

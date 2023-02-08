@@ -5,8 +5,16 @@ pub fn string_model() {
     use std::{collections::HashMap, time::Instant};
 
     let axiom = String::from("X");
-    let rules = HashMap::from([('X', "F[X][+DX]-DX"), ('D', "F")]);
-    let depth = 12_usize;
+    let rules = HashMap::from([
+        ('X', "F[X][+DX]-DX"),
+        ('D', "F"),
+        ('F', "F"),
+        ('+', "+"),
+        ('-', "-"),
+        ('[', "["),
+        (']', "]"),
+    ]);
+    let depth = 13_usize;
 
     let expression_string = LSystemString::new(axiom.clone(), rules.clone(), depth);
 
@@ -16,7 +24,7 @@ pub fn string_model() {
             .count()
             * 4;
 
-    let expression_struct = LSystemBuilder::new(axiom.clone(), rules.clone(), depth);
+    let expression_struct = LSystemBuilder::new("X", rules.clone(), depth);
 
     let actions = HashMap::from([
         ('F', Action::DrawForward(15.0)),

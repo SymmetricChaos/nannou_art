@@ -6,8 +6,16 @@ use super::{expression::LSystemBuilder, Action, Cursor, LSystem};
 
 pub fn model(_app: &App) -> LSystem {
     let expression = LSystemBuilder::new(
-        String::from("X"),
-        HashMap::from([('X', "F[X][+DX]-DX"), ('D', "F")]),
+        "X",
+        HashMap::from([
+            ('X', "F[X][+DX]-DX"),
+            ('D', "F"),
+            ('F', "F"),
+            ('+', "+"),
+            ('-', "-"),
+            ('[', "["),
+            (']', "]"),
+        ]),
         7,
     );
 

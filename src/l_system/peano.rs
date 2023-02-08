@@ -9,10 +9,13 @@ pub fn model(_app: &App) -> LSystem {
     // B-curve: SS+S+SS-S-SS
 
     let expression = LSystemBuilder::new(
-        String::from("A"),
+        "A",
         HashMap::from([
             ('A', "ASBSA-S-BSASB+S+ASBSA"),
             ('B', "BSASB+S+ASBSA-S-BSASB"),
+            ('S', "S"),
+            ('+', "+"),
+            ('-', "-"),
         ]),
         4,
     );
