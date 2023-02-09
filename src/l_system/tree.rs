@@ -16,7 +16,7 @@ pub fn model(_app: &App) -> LSystem {
             ('[', "["),
             (']', "]"),
         ]),
-        7,
+        10,
     );
 
     let actions = HashMap::from([

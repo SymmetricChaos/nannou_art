@@ -10,7 +10,7 @@ pub mod peano_variety;
 pub mod speed_test;
 pub mod tree;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
 
 use nannou::{
     prelude::{Update, Vec2},
@@ -69,6 +69,7 @@ impl LSystem {
 
     /// Read the next character of the expression, perform the corresponding action, and then report the action
     /// Returns None if the expression has been read completely
+    /// Unknown symbols are treated as Action::None
     pub fn step(&mut self) -> Option<Action> {
         if let Some(c) = self.expression.next() {
             if let Some(a) = self.actions.get(&c) {
@@ -94,7 +95,7 @@ impl LSystem {
                 }
                 Some(*a)
             } else {
-                panic!("unknown character encountered in expression: {c}")
+                Some(Action::None)
             }
         } else {
             None
@@ -179,4 +180,15 @@ pub fn draw(app: &App, model: &mut LSystem, _update: Update) {
             break;
         }
     }
+}
+
+pub fn timed(app: &App, model: &mut LSystem, _update: Update) {
+    let t0 = Instant::now();
+    loop {
+        if model.step().is_none() {
+            app.quit();
+            break;
+        }
+    }
+    println!("{:?}", Instant::now() - t0);
 }

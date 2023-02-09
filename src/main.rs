@@ -9,7 +9,7 @@ pub mod wave;
 fn main() {
     //nannou::sketch(wave::view).run();
     nannou::app(l_system::tree::model)
-        .update(l_system::draw)
+        .update(l_system::timed)
         .simple_window(l_system::tree::view)
         .run();
 }
