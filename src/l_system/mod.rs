@@ -8,8 +8,9 @@ pub mod peano_gosper;
 pub mod peano_variety;
 pub mod tree;
 
-use std::{collections::HashMap, str::Chars, time::Instant};
+use std::{collections::HashMap, time::Instant};
 
+use lindenmayer::LSystemBuilder;
 use nannou::{glam::Vec2, prelude::Update, App};
 
 use crate::segment::Segment;
@@ -56,9 +57,8 @@ pub enum Action {
 /// Interpret a sequence of symbols as actions in 2D space.
 #[derive(Debug, Clone)]
 pub struct SymbolReader<'a> {
-    expression: String,
+    expression: LSystemBuilder<'a>,
     actions: HashMap<char, Action>,
-    chars: Chars<'a>,
     pub segments: Vec<Segment>,
     pub cursors: Vec<Cursor>,
     pub positions: Vec<Vec2>,
@@ -67,11 +67,10 @@ pub struct SymbolReader<'a> {
 }
 
 impl SymbolReader<'_> {
-    pub fn new(expression: String, actions: HashMap<char, Action>, cursor: Cursor) -> Self {
+    pub fn new(expression: LSystemBuilder, actions: HashMap<char, Action>, cursor: Cursor) -> Self {
         SymbolReader {
             expression,
             actions,
-            chars: Chars,
             segments: Vec::new(),
             cursors: Vec::new(),
             positions: Vec::new(),

@@ -26,7 +26,7 @@ pub fn model(_app: &App) -> SymbolReader {
 
     let cursor = Cursor::new((-377.99478, -377.99304), (0.0, 1.0));
 
-    SymbolReader::new(system.string(6), actions, cursor)
+    SymbolReader::new(system.builder(6), actions, cursor)
 }
 
 pub fn view(app: &App, model: &SymbolReader, frame: Frame) {
