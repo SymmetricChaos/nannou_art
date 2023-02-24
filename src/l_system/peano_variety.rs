@@ -1,13 +1,14 @@
 use std::collections::HashMap;
 
+use lindenmayer::{LSystem, LSystemBuilder};
 use nannou::{
     prelude::{BLACK, RED},
     App, Frame,
 };
 
-use super::{expression::LSystemBuilder, Action, Cursor, LSystem};
+use super::{cursor::Cursor, Action, SymbolReader};
 
-pub fn model(_app: &App) -> LSystem {
+pub fn model(_app: &App) -> SymbolReader<LSystemBuilder> {
     // A-curve: ss+s+ss-s-ss (NW)
     // B-curve: ss-s-ss+s+ss (NE)
 
@@ -15,15 +16,14 @@ pub fn model(_app: &App) -> LSystem {
     // D-curve: -ss+s+ss-s-ss+ (NE)
 
     // In the replacement part of the rules A and C can be switched as can B and D
-    let expression = LSystemBuilder::new(
-        "-A",
-        HashMap::from([
+    let expression = LSystem::new(
+        String::from("-A"),
+        &[
             ('A', "AsDsC+s+DsCsD-s-AsBsA"),
             ('B', "DsCsB-s-AsBsA+s+BsAsB"),
             ('C', "+BsAsD-s-AsBsA+s+BsAsB-"),
             ('D', "-AsBsA+s+BsCsB-s-AsBsA+"),
-        ]),
-        3,
+        ],
     );
 
     let actions = HashMap::from([
@@ -38,10 +38,10 @@ pub fn model(_app: &App) -> LSystem {
 
     let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));
 
-    LSystem::new(Box::new(expression), actions, cursor)
+    SymbolReader::new(expression.builder(4), actions, cursor)
 }
 
-pub fn view(app: &App, model: &LSystem, frame: Frame) {
+pub fn view(app: &App, model: &SymbolReader<LSystemBuilder>, frame: Frame) {
     let draw = app.draw();
 
     draw.background().color(BLACK);

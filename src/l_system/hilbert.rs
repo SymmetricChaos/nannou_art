@@ -1,20 +1,19 @@
 use std::collections::HashMap;
 
+use lindenmayer::{LSystem, LSystemBuilder};
 use nannou::{prelude::BLACK, App, Frame};
 
-use super::{expression::LSystemBuilder, Action, Cursor, LSystem};
-
-pub fn model(_app: &App) -> LSystem {
-    let expression = LSystemBuilder::new(
-        "A",
-        HashMap::from([
+use super::{cursor::Cursor, Action, SymbolReader};
+pub fn model(_app: &App) -> SymbolReader<LSystemBuilder> {
+    let system = LSystem::new(
+        String::from("A"),
+        &[
             ('A', "+BF-AFA-FB+"),
             ('B', "-AF+BFB+FA-"),
             ('F', "F"),
             ('+', "+"),
             ('-', "-"),
-        ]),
-        6,
+        ],
     );
 
     let actions = HashMap::from([
@@ -27,10 +26,10 @@ pub fn model(_app: &App) -> LSystem {
 
     let cursor = Cursor::new((-377.99478, -377.99304), (0.0, 1.0));
 
-    LSystem::new(Box::new(expression), actions, cursor)
+    SymbolReader::new(system.builder(6), actions, cursor)
 }
 
-pub fn view(app: &App, model: &LSystem, frame: Frame) {
+pub fn view(app: &App, model: &SymbolReader<LSystemBuilder>, frame: Frame) {
     let draw = app.draw();
 
     draw.background().color(BLACK);

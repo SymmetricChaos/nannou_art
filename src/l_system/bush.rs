@@ -1,44 +1,52 @@
 use std::collections::HashMap;
 
+use lindenmayer::{LSystemBuilderStochastic, LSystemStochastic};
 use nannou::{prelude::BLACK, App, Frame};
 
-use super::{expression::LSystemBuilderStochastic, Action, Cursor, LSystem};
+use super::{cursor::Cursor, Action, SymbolReader};
 
-pub fn model(_app: &App) -> LSystem {
-    let expression = LSystemBuilderStochastic::new(
-        "X",
-        HashMap::from([
-            ('X', vec![("F[X][+DX]-DX", 1.0)]),
-            ('F', vec![("L", 1.0), ("S", 1.0)]),
-            ('L', vec![("L", 1.0)]),
-            ('S', vec![("S", 1.0)]),
-            ('D', vec![("D", 1.0)]),
-            ('+', vec![("+", 1.0)]),
-            ('-', vec![("-", 1.0)]),
-            ('[', vec![("[", 1.0)]),
-            (']', vec![("]", 1.0)]),
-        ]),
-        6,
-    );
+use lazy_static::lazy_static;
 
-    let actions = HashMap::from([
-        ('F', Action::None),
-        ('X', Action::None),
-        ('L', Action::DrawForward(35.0)),
-        ('S', Action::DrawForward(20.0)),
-        ('D', Action::Dot),
-        ('+', Action::RotateRad(-0.4)),
-        ('-', Action::RotateRad(0.4)),
-        ('[', Action::PushCursor),
-        (']', Action::PopCursor),
-    ]);
+lazy_static! {
+    static ref SYSTEM: SymbolReader<LSystemBuilderStochastic<'static>> = {
+        let system = LSystemStochastic::new(
+            String::from("X"),
+            &[
+                ('X', vec![("F[X][+DX]-DX", 1.0)]),
+                ('F', vec![("L", 1.0), ("S", 1.0)]),
+                ('L', vec![("L", 1.0)]),
+                ('S', vec![("S", 1.0)]),
+                ('D', vec![("D", 1.0)]),
+                ('+', vec![("+", 1.0)]),
+                ('-', vec![("-", 1.0)]),
+                ('[', vec![("[", 1.0)]),
+                (']', vec![("]", 1.0)]),
+            ],
+        );
 
-    let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));
+        let actions = HashMap::from([
+            ('F', Action::None),
+            ('X', Action::None),
+            ('L', Action::DrawForward(35.0)),
+            ('S', Action::DrawForward(20.0)),
+            ('D', Action::PushPosition),
+            ('+', Action::RotateRad(-0.4)),
+            ('-', Action::RotateRad(0.4)),
+            ('[', Action::PushCursor),
+            (']', Action::PopCursor),
+        ]);
 
-    LSystem::new(Box::new(expression), actions, cursor)
+        let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));
+
+        SymbolReader::new(system.builder(6, None), actions, cursor)
+    };
 }
 
-pub fn view(app: &App, model: &LSystem, frame: Frame) {
+pub fn model(_app: &App) -> SymbolReader<LSystemBuilderStochastic> {
+    SYSTEM.clone()
+}
+
+pub fn view<I: Iterator<Item = char>>(app: &App, model: &SymbolReader<I>, frame: Frame) {
     let draw = app.draw();
 
     draw.background().color(BLACK);
@@ -51,7 +59,7 @@ pub fn view(app: &App, model: &LSystem, frame: Frame) {
             .caps_round();
     }
 
-    for dot in model.dots.iter() {
+    for dot in model.positions.iter() {
         draw.ellipse()
             .xy(*dot)
             .radius(3.0)

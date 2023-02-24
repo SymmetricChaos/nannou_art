@@ -1,21 +1,16 @@
 pub mod bush;
 pub mod corn;
 pub mod cursor;
-pub mod expression;
 pub mod fern;
 pub mod hilbert;
 pub mod peano;
 pub mod peano_gosper;
 pub mod peano_variety;
-pub mod speed_test;
 pub mod tree;
 
 use std::{collections::HashMap, time::Instant};
 
-use nannou::{
-    prelude::{Update, Vec2},
-    App,
-};
+use nannou::{glam::Vec2, prelude::Update, App};
 
 use crate::segment::Segment;
 
@@ -26,76 +21,109 @@ use self::cursor::Cursor;
 pub enum Action {
     /// Do nothing
     None,
-    /// Move the Cursor forward
+    /// Do nothing, but report that symbol isn't recognized
+    Unknown,
+    /// Custom action
+    Custom(&'static str),
+    /// Move the Cursor forward the specified distance
     MoveForward(f32),
     /// Move the Cursor forward and save a Segment representing a line between the positions to self.segments
     DrawForward(f32),
+    /// Move the Cursor of the specificed location
+    MoveTo(Vec2),
+    /// Move the Cursor of the specificed location and save a Segment representing a line between the positions to self.segments
+    DrawTo(Vec2),
     /// Rotate the Cursor by an angle given in radians
     RotateRad(f32),
     /// Rotate the Cursor by an angle given in degrees
     RotateDeg(f32),
-    /// Push a copy of the Cursor to the cursor stack
+    /// Set the Cursor angle to the given value, which is normalized automatically
+    SetAngle(Vec2),
+    /// Push a copy of the Cursor to self.cursors
     PushCursor,
-    /// Pop the top item of the cursor stack and replace the Cursor with it
+    /// Pop the top item of self.cursors and replace the Cursor with it
     PopCursor,
-    /// Save the position of the Cursor to self.dots
-    Dot,
+    /// Save the position of the Cursor to self.positions
+    PushPosition,
+    /// Pop the top item of self.cursors and replace the Cursor's position with it
+    PopPosition,
+    /// Save the angle of the Cursor to self.angles
+    PushAngle,
+    /// Pop the top item of self.angles and replace the Cursor's angle with it
+    PopAngle,
 }
 
-pub struct LSystem {
-    expression: Box<dyn Iterator<Item = char>>,
+/// Interpret a sequence of symbols as actions in 2D space.
+#[derive(Debug, Clone)]
+pub struct SymbolReader<I: Iterator<Item = char>> {
+    expression: I,
     actions: HashMap<char, Action>,
-    cursor_stack: Vec<Cursor>,
     pub segments: Vec<Segment>,
-    pub dots: Vec<Vec2>,
-    cursor: Cursor,
+    pub cursors: Vec<Cursor>,
+    pub positions: Vec<Vec2>,
+    pub angles: Vec<Vec2>,
+    pub cursor: Cursor,
 }
 
-impl LSystem {
-    pub fn new(
-        expression: Box<dyn Iterator<Item = char>>,
-        actions: HashMap<char, Action>,
-        cursor: Cursor,
-    ) -> Self {
-        LSystem {
+impl<I: Iterator<Item = char>> SymbolReader<I> {
+    pub fn new(expression: I, actions: HashMap<char, Action>, cursor: Cursor) -> Self {
+        SymbolReader {
             expression,
             actions,
-            cursor_stack: Vec::new(),
             segments: Vec::new(),
-            dots: Vec::new(),
+            cursors: Vec::new(),
+            positions: Vec::new(),
+            angles: Vec::new(),
             cursor,
         }
     }
 
     /// Read the next character of the expression, perform the corresponding action, and then report the action
     /// Returns None if the expression has been read completely
-    /// Unknown symbols are treated as Action::None
     pub fn step(&mut self) -> Option<Action> {
         if let Some(c) = self.expression.next() {
             if let Some(a) = self.actions.get(&c) {
                 match a {
-                    Action::None => (),
                     Action::DrawForward(dist) => {
-                        let mut new_cursor = self.cursor;
-                        new_cursor.forward(*dist);
-                        self.segments.push(Segment::from((
-                            self.cursor.position(),
-                            new_cursor.position(),
-                        )));
-                        self.cursor = new_cursor;
+                        let old_pos = self.cursor.position();
+                        self.cursor.forward(*dist);
+                        self.segments
+                            .push(Segment::from((old_pos, self.cursor.position())));
                     }
                     Action::MoveForward(dist) => self.cursor.forward(*dist),
+                    Action::DrawTo(pos) => {
+                        let old_pos = self.cursor.position();
+                        self.cursor.set_position(*pos);
+                        self.segments.push(Segment::from((old_pos, *pos)));
+                    }
+                    Action::MoveTo(pos) => self.cursor.set_position(*pos),
                     Action::RotateRad(radians) => self.cursor.rotate(*radians),
                     Action::RotateDeg(degrees) => self.cursor.rotate_degrees(*degrees),
-                    Action::PushCursor => self.cursor_stack.push(self.cursor),
+                    Action::SetAngle(angle) => self.cursor.set_angle(*angle),
+                    Action::PushCursor => self.cursors.push(self.cursor),
                     Action::PopCursor => {
-                        self.cursor = self.cursor_stack.pop().expect("pop from empty stack")
+                        self.cursor = self
+                            .cursors
+                            .pop()
+                            .expect("tried to pop from self.cursors when it was empty")
                     }
-                    Action::Dot => self.dots.push(self.cursor.position()),
+                    Action::PushPosition => self.positions.push(self.cursor.position()),
+                    Action::PopPosition => self.cursor.set_position(
+                        self.positions
+                            .pop()
+                            .expect("tried to pop from self.positions when it was empty"),
+                    ),
+                    Action::PushAngle => self.angles.push(self.cursor.angle()),
+                    Action::PopAngle => self.cursor.set_angle(
+                        self.angles
+                            .pop()
+                            .expect("tried to pop from self.angles when it was empty"),
+                    ),
+                    Action::None | Action::Unknown | Action::Custom(_) => (),
                 }
                 Some(*a)
             } else {
-                Some(Action::None)
+                Some(Action::Unknown)
             }
         } else {
             None
@@ -103,7 +131,7 @@ impl LSystem {
     }
 }
 
-fn print_center(model: &mut LSystem) {
+fn print_center<I: Iterator<Item = char>>(model: &mut SymbolReader<I>) {
     let x = {
         let x_max = model
             .segments
@@ -137,7 +165,7 @@ fn print_center(model: &mut LSystem) {
     println!("center: ({x},{y})");
 }
 
-pub fn steps(app: &App, model: &mut LSystem, _update: Update) {
+pub fn steps<I: Iterator<Item = char>>(app: &App, model: &mut SymbolReader<I>, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
@@ -154,7 +182,11 @@ pub fn steps(app: &App, model: &mut LSystem, _update: Update) {
     }
 }
 
-pub fn steps_then_quit(app: &App, model: &mut LSystem, _update: Update) {
+pub fn steps_then_quit<I: Iterator<Item = char>>(
+    app: &App,
+    model: &mut SymbolReader<I>,
+    _update: Update,
+) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
@@ -171,7 +203,7 @@ pub fn steps_then_quit(app: &App, model: &mut LSystem, _update: Update) {
     }
 }
 
-pub fn draw(app: &App, model: &mut LSystem, _update: Update) {
+pub fn draw<I: Iterator<Item = char>>(app: &App, model: &mut SymbolReader<I>, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
@@ -182,11 +214,10 @@ pub fn draw(app: &App, model: &mut LSystem, _update: Update) {
     }
 }
 
-pub fn timed(app: &App, model: &mut LSystem, _update: Update) {
+pub fn timed<I: Iterator<Item = char>>(_app: &App, model: &mut SymbolReader<I>, _update: Update) {
     let t0 = Instant::now();
     loop {
         if model.step().is_none() {
-            app.quit();
             break;
         }
     }
