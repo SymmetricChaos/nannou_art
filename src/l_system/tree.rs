@@ -5,40 +5,38 @@ use nannou::{prelude::BLACK, App, Frame};
 
 use super::{cursor::Cursor, Action, SymbolReader};
 
-use lazy_static::lazy_static;
-
-lazy_static! {
-    static ref SYSTEM: SymbolReader<'static> = {
-        let expression = LSystem::new(
-            String::from("X"),
-            &[
-                ('X', "F[X][+FX]-FX"),
-                ('F', "F"),
-                ('+', "+"),
-                ('-', "-"),
-                ('[', "["),
-                (']', "]"),
-            ],
-        );
-
-        let actions = HashMap::from([
-            ('X', Action::None),
-            ('D', Action::PushPosition),
-            ('F', Action::DrawForward(60.0)),
-            ('+', Action::RotateDeg(-25.0)),
-            ('-', Action::RotateDeg(25.0)),
-            ('[', Action::PushCursor),
-            (']', Action::PopCursor),
-        ]);
-
-        let cursor = Cursor::new((0.0, -200.0), (0.0, 1.0));
-
-        SymbolReader::new(expression.builder(4), actions, cursor)
-    };
+pub struct Model {
+    system: LSystem,
+    actions: HashMap<char, Action>,
+    reader: SymbolReader,
 }
 
 pub fn model(_app: &App) -> SymbolReader {
-    *SYSTEM
+    let expression = LSystem::new(
+        String::from("X"),
+        &[
+            ('X', "F[X][+FX]-FX"),
+            ('F', "F"),
+            ('+', "+"),
+            ('-', "-"),
+            ('[', "["),
+            (']', "]"),
+        ],
+    );
+
+    let actions = HashMap::from([
+        ('X', Action::None),
+        ('D', Action::PushPosition),
+        ('F', Action::DrawForward(60.0)),
+        ('+', Action::RotateDeg(-25.0)),
+        ('-', Action::RotateDeg(25.0)),
+        ('[', Action::PushCursor),
+        (']', Action::PopCursor),
+    ]);
+
+    let cursor = Cursor::new((0.0, -200.0), (0.0, 1.0));
+
+    SymbolReader::new(expression.builder(4), actions, cursor)
 }
 
 pub fn view(app: &App, model: &SymbolReader, frame: Frame) {
