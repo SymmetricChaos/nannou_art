@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use lindenmayer::{LSystem, LSystemBuilder};
+use lindenmayer::LSystem;
 use nannou::{prelude::BLACK, App, Frame};
 
 use super::{cursor::Cursor, Action, SymbolReader};
 
-pub fn model(_app: &App) -> SymbolReader<LSystemBuilder> {
+pub fn model(_app: &App) -> SymbolReader {
     // A-curve: SS-S-SS+S+SS
     // B-curve: SS+S+SS-S-SS
 
@@ -27,10 +27,10 @@ pub fn model(_app: &App) -> SymbolReader<LSystemBuilder> {
 
     let cursor = Cursor::new((-194.99623, -194.99829), (0.0, 1.0));
 
-    SymbolReader::new(expression.builder(4), actions, cursor)
+    SymbolReader::new(expression.string(4), actions, cursor)
 }
 
-pub fn view(app: &App, model: &SymbolReader<LSystemBuilder>, frame: Frame) {
+pub fn view(app: &App, model: &SymbolReader, frame: Frame) {
     let draw = app.draw();
 
     draw.background().color(BLACK);

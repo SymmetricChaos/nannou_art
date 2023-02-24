@@ -8,7 +8,7 @@ pub mod peano_gosper;
 pub mod peano_variety;
 pub mod tree;
 
-use std::{collections::HashMap, time::Instant};
+use std::{collections::HashMap, str::Chars, time::Instant};
 
 use nannou::{glam::Vec2, prelude::Update, App};
 
@@ -55,9 +55,10 @@ pub enum Action {
 
 /// Interpret a sequence of symbols as actions in 2D space.
 #[derive(Debug, Clone)]
-pub struct SymbolReader<I: Iterator<Item = char>> {
-    expression: I,
+pub struct SymbolReader<'a> {
+    expression: String,
     actions: HashMap<char, Action>,
+    chars: Chars<'a>,
     pub segments: Vec<Segment>,
     pub cursors: Vec<Cursor>,
     pub positions: Vec<Vec2>,
@@ -65,11 +66,12 @@ pub struct SymbolReader<I: Iterator<Item = char>> {
     pub cursor: Cursor,
 }
 
-impl<I: Iterator<Item = char>> SymbolReader<I> {
-    pub fn new(expression: I, actions: HashMap<char, Action>, cursor: Cursor) -> Self {
+impl SymbolReader<'_> {
+    pub fn new(expression: String, actions: HashMap<char, Action>, cursor: Cursor) -> Self {
         SymbolReader {
             expression,
             actions,
+            chars: Chars,
             segments: Vec::new(),
             cursors: Vec::new(),
             positions: Vec::new(),
@@ -131,7 +133,7 @@ impl<I: Iterator<Item = char>> SymbolReader<I> {
     }
 }
 
-fn print_center<I: Iterator<Item = char>>(model: &mut SymbolReader<I>) {
+fn print_center(model: &mut SymbolReader) {
     let x = {
         let x_max = model
             .segments
@@ -165,7 +167,7 @@ fn print_center<I: Iterator<Item = char>>(model: &mut SymbolReader<I>) {
     println!("center: ({x},{y})");
 }
 
-pub fn steps<I: Iterator<Item = char>>(app: &App, model: &mut SymbolReader<I>, _update: Update) {
+pub fn steps(app: &App, model: &mut SymbolReader, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
@@ -182,11 +184,7 @@ pub fn steps<I: Iterator<Item = char>>(app: &App, model: &mut SymbolReader<I>, _
     }
 }
 
-pub fn steps_then_quit<I: Iterator<Item = char>>(
-    app: &App,
-    model: &mut SymbolReader<I>,
-    _update: Update,
-) {
+pub fn steps_then_quit(app: &App, model: &mut SymbolReader, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
@@ -203,7 +201,7 @@ pub fn steps_then_quit<I: Iterator<Item = char>>(
     }
 }
 
-pub fn draw<I: Iterator<Item = char>>(app: &App, model: &mut SymbolReader<I>, _update: Update) {
+pub fn draw(app: &App, model: &mut SymbolReader, _update: Update) {
     if app.keys.down.contains(&nannou::prelude::Key::C) {
         print_center(model)
     }
@@ -214,7 +212,7 @@ pub fn draw<I: Iterator<Item = char>>(app: &App, model: &mut SymbolReader<I>, _u
     }
 }
 
-pub fn timed<I: Iterator<Item = char>>(_app: &App, model: &mut SymbolReader<I>, _update: Update) {
+pub fn timed(_app: &App, model: &mut SymbolReader, _update: Update) {
     let t0 = Instant::now();
     loop {
         if model.step().is_none() {
