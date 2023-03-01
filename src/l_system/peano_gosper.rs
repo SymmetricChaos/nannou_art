@@ -5,18 +5,19 @@ use nannou::{prelude::BLACK, App, Frame};
 
 use super::{cursor::Cursor, Action, SymbolReader};
 
-pub fn model(_app: &App) -> SymbolReader {
-    let expression = LSystem::new(
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref SYSTEM: LSystem = LSystem::new(
         String::from("X"),
         &[
             ('X', "X+YF++YF-FX--FXFX-YF+"),
             ('Y', "-FX+YFYF++YF+FX--FX-Y"),
-            ('F', "F"),
-            ('+', "+"),
-            ('-', "-"),
         ],
     );
+}
 
+pub fn model(_app: &App) -> SymbolReader {
     let actions = HashMap::from([
         ('X', Action::None),
         ('Y', Action::None),
@@ -27,7 +28,9 @@ pub fn model(_app: &App) -> SymbolReader {
 
     let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));
 
-    SymbolReader::new(expression.builder(4), actions, cursor)
+    let builder = SYSTEM.builder(4);
+
+    SymbolReader::new(Box::new(builder), actions, cursor)
 }
 
 pub fn view(app: &App, model: &SymbolReader, frame: Frame) {

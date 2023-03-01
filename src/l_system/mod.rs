@@ -1,11 +1,11 @@
-// pub mod bush;
-// pub mod corn;
+pub mod bush;
+pub mod corn;
 pub mod cursor;
-// pub mod fern;
-// pub mod hilbert;
-// pub mod peano;
-// pub mod peano_gosper;
-// pub mod peano_variety;
+pub mod fern;
+pub mod hilbert;
+pub mod peano;
+pub mod peano_gosper;
+pub mod peano_variety;
 pub mod tree;
 
 use std::{collections::HashMap, time::Instant};

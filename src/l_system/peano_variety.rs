@@ -8,7 +8,9 @@ use nannou::{
 
 use super::{cursor::Cursor, Action, SymbolReader};
 
-pub fn model(_app: &App) -> SymbolReader {
+use lazy_static::lazy_static;
+
+lazy_static! {
     // A-curve: ss+s+ss-s-ss (NW)
     // B-curve: ss-s-ss+s+ss (NE)
 
@@ -16,7 +18,8 @@ pub fn model(_app: &App) -> SymbolReader {
     // D-curve: -ss+s+ss-s-ss+ (NE)
 
     // In the replacement part of the rules A and C can be switched as can B and D
-    let expression = LSystem::new(
+
+    static ref SYSTEM: LSystem = LSystem::new(
         String::from("-A"),
         &[
             ('A', "AsDsC+s+DsCsD-s-AsBsA"),
@@ -25,7 +28,9 @@ pub fn model(_app: &App) -> SymbolReader {
             ('D', "-AsBsA+s+BsCsB-s-AsBsA+"),
         ],
     );
+}
 
+pub fn model(_app: &App) -> SymbolReader {
     let actions = HashMap::from([
         ('A', Action::None),
         ('B', Action::None),
@@ -38,7 +43,9 @@ pub fn model(_app: &App) -> SymbolReader {
 
     let cursor = Cursor::new((0.0, 0.0), (0.0, 1.0));
 
-    SymbolReader::new(expression.builder(4), actions, cursor)
+    let builder = SYSTEM.builder(4);
+
+    SymbolReader::new(Box::new(builder), actions, cursor)
 }
 
 pub fn view(app: &App, model: &SymbolReader, frame: Frame) {

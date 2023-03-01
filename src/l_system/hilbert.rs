@@ -4,8 +4,11 @@ use lindenmayer::LSystem;
 use nannou::{prelude::BLACK, App, Frame};
 
 use super::{cursor::Cursor, Action, SymbolReader};
-pub fn model(_app: &App) -> SymbolReader {
-    let system = LSystem::new(
+
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref SYSTEM: LSystem = LSystem::new(
         String::from("A"),
         &[
             ('A', "+BF-AFA-FB+"),
@@ -15,7 +18,9 @@ pub fn model(_app: &App) -> SymbolReader {
             ('-', "-"),
         ],
     );
+}
 
+pub fn model(_app: &App) -> SymbolReader {
     let actions = HashMap::from([
         ('A', Action::None),
         ('B', Action::None),
@@ -26,7 +31,9 @@ pub fn model(_app: &App) -> SymbolReader {
 
     let cursor = Cursor::new((-377.99478, -377.99304), (0.0, 1.0));
 
-    SymbolReader::new(system.builder(6), actions, cursor)
+    let builder = SYSTEM.builder(4);
+
+    SymbolReader::new(Box::new(builder), actions, cursor)
 }
 
 pub fn view(app: &App, model: &SymbolReader, frame: Frame) {

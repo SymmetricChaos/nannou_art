@@ -3,20 +3,23 @@ use std::collections::HashMap;
 use lindenmayer::LSystem;
 use nannou::{prelude::BLACK, App, Frame};
 
-use super::{cursor::Cursor, Action, Model, SymbolReader};
+use super::{cursor::Cursor, Action, SymbolReader};
 
-pub fn model(_app: &App) -> Model {
+use lazy_static::lazy_static;
+
+lazy_static! {
     // A-curve: SS-S-SS+S+SS
     // B-curve: SS+S+SS-S-SS
-
-    let system = LSystem::new(
+    static ref SYSTEM: LSystem = LSystem::new(
         String::from("A"),
         &[
             ('A', "ASBSA-S-BSASB+S+ASBSA"),
             ('B', "BSASB+S+ASBSA-S-BSASB"),
         ],
     );
+}
 
+pub fn model(_app: &App) -> SymbolReader {
     let actions = HashMap::from([
         ('A', Action::None),
         ('B', Action::None),
@@ -27,17 +30,15 @@ pub fn model(_app: &App) -> Model {
 
     let cursor = Cursor::new((-194.99623, -194.99829), (0.0, 1.0));
 
-    let reader = SymbolReader::new(Box::new(system.builder(4)), actions, cursor);
-
-    Model { system, reader }
+    SymbolReader::new(Box::new(SYSTEM.builder(4)), actions, cursor)
 }
 
-pub fn view(app: &App, model: &Model, frame: Frame) {
+pub fn view(app: &App, model: &SymbolReader, frame: Frame) {
     let draw = app.draw();
 
     draw.background().color(BLACK);
 
-    for segment in model.reader.segments.iter() {
+    for segment in model.segments.iter() {
         segment
             .line(&draw)
             .rgba(0.776, 0.811, 0.266, 1.0)
