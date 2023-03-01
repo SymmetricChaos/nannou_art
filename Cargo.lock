@@ -724,12 +724,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "glam"
-version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12f597d56c1bd55a811a1be189459e8fad2bbc272616375602443bdfb37fa774"
-
-[[package]]
 name = "glow"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -949,11 +943,10 @@ dependencies = [
 
 [[package]]
 name = "lindenmayer"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60f909de4d140e1b0b85ee3004e954a2d91ab4751d7778d2ef0813801152a2b5"
+checksum = "50cae6e4a6dcb8f1ce5140abf6ed5ea971497d3e1347b149ea204caf28b54278"
 dependencies = [
- "glam 0.22.0",
  "rand 0.8.5",
  "rand_xoshiro",
  "rustc-hash",
@@ -1207,7 +1200,7 @@ version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d53707a99dc3b2908f1d25d982755126d885ac6d780741de29f44956624fcac"
 dependencies = [
- "glam 0.17.3",
+ "glam",
  "num-traits",
  "palette",
  "rand 0.8.5",

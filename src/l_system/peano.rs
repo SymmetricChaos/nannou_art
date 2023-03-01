@@ -3,13 +3,13 @@ use std::collections::HashMap;
 use lindenmayer::LSystem;
 use nannou::{prelude::BLACK, App, Frame};
 
-use super::{cursor::Cursor, Action, SymbolReader};
+use super::{cursor::Cursor, Action, Model, SymbolReader};
 
-pub fn model(_app: &App) -> SymbolReader {
+pub fn model(_app: &App) -> Model {
     // A-curve: SS-S-SS+S+SS
     // B-curve: SS+S+SS-S-SS
 
-    let expression = LSystem::new(
+    let system = LSystem::new(
         String::from("A"),
         &[
             ('A', "ASBSA-S-BSASB+S+ASBSA"),
@@ -27,15 +27,17 @@ pub fn model(_app: &App) -> SymbolReader {
 
     let cursor = Cursor::new((-194.99623, -194.99829), (0.0, 1.0));
 
-    SymbolReader::new(expression.builder(4), actions, cursor)
+    let reader = SymbolReader::new(Box::new(system.builder(4)), actions, cursor);
+
+    Model { system, reader }
 }
 
-pub fn view(app: &App, model: &SymbolReader, frame: Frame) {
+pub fn view(app: &App, model: &Model, frame: Frame) {
     let draw = app.draw();
 
     draw.background().color(BLACK);
 
-    for segment in model.segments.iter() {
+    for segment in model.reader.segments.iter() {
         segment
             .line(&draw)
             .rgba(0.776, 0.811, 0.266, 1.0)
