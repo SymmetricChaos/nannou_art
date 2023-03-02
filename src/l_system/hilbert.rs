@@ -10,13 +10,7 @@ use lazy_static::lazy_static;
 lazy_static! {
     static ref SYSTEM: LSystem = LSystem::new(
         String::from("A"),
-        &[
-            ('A', "+BF-AFA-FB+"),
-            ('B', "-AF+BFB+FA-"),
-            ('F', "F"),
-            ('+', "+"),
-            ('-', "-"),
-        ],
+        &[('A', "+BF-AFA-FB+"), ('B', "-AF+BFB+FA-"),],
     );
 }
 
